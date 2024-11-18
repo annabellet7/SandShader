@@ -1,7 +1,8 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec2 TexCoord;
+in vec3 ColorShade;
+in vec3 ColorSun;
 in vec3 FragPos;
 in vec3 Normal;
 
@@ -23,18 +24,24 @@ void main()
 { 
 	vec3 ambient = uAmbientK * uLightColor;
 
-	vec4 cubeTexture = mix(texture(texture2, TexCoord), texture(texture3, TexCoord), 0.4);
+	//vec4 cubeTexture = mix(texture(texture2, TexCoord), texture(texture3, TexCoord), 0.4);
 	vec3 norm = normalize(Normal);
 
+	//Ripple Norms
+
+	//Grain Norms
+
 	vec3 lightDir = normalize(uLightPos - FragPos);
-	float diff = max(dot(norm, lightDir), 0.0);
+	float yNorm = norm.y * 0.3;
+	float diff = clamp(4 * dot(vec3(norm.x, yNorm, norm.z), lightDir), 0.0, 1.0);
 	vec3 diffuse = diff * uLightColor * uDiffuseK;
+	vec3 color = mix(ColorShade, ColorSun, diff);
 
 	vec3 viewDir = normalize(uViewPos - FragPos);
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 	float spec = pow(max(dot(norm, halfwayDir), 0.0), uShininess);
 	vec3  specular = uLightColor * spec * uSpecularK;
 
-	vec3 result = (ambient + diffuse + specular) * vec3(cubeTexture.x, cubeTexture.y, cubeTexture.z);
+	vec3 result = (ambient + diffuse + specular) * color;
 	FragColor = vec4(result, 1.0);
 }
