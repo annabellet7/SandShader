@@ -22,14 +22,14 @@
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera cam(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera cam(glm::vec3(0.0f, 0.0f, 10.0f));
 bool firstMouse = true;
 float lastX = 400, lastY = 300;
 
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720; 
 
-glm::vec3 lightPos(0.0f, 0.0f, -0.0f);
+glm::vec3 lightPos(0.0f, 3.0f, 1.0f);
 glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 float ambientK = 0.15f;
 float diffuseK = 1.0f;
@@ -59,6 +59,9 @@ int main() {
 		printf("GLAD Failed to load GL headers");
 		return 1;
 	}
+
+	glfwSetCursorPosCallback(window, mouseCallback);
+	glfwSetScrollCallback(window, scrollCallback);
 
 	//Initialization goes here!
 	glEnable(GL_BLEND);
@@ -101,8 +104,6 @@ int main() {
 
 		//input
 		processInput(window);
-		glfwSetCursorPosCallback(window, mouseCallback);
-		glfwSetScrollCallback(window, scrollCallback);
 
 		//Clear framebuffer
 		glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
@@ -139,7 +140,7 @@ int main() {
 			//Draw sphere
 			glm::mat4 transform = glm::mat4(1);
 			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			transform = glm::translate(transform, glm::vec3(3.0, 3.0, 0.0));
+			transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
 			basicLightingShader.setMat4("model", transform);
 			sphereMesh.draw(drawMode);
 		}

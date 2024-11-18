@@ -33,10 +33,13 @@ void main()
 
 	//diffuse shader
 	vec3 lightDir = normalize(uLightPos - FragPos);
+	//shadows be more vertical?? - ask about
 	float yNorm = norm.y * 0.3;
-	float diff = clamp(4 * dot(vec3(norm.x, yNorm, norm.z), lightDir), 0.0, 1.0);
+	//causes the normal lambert shader to have a less gradual change/change faster 
+	float diff = clamp(4 * dot(vec3(norm.x, yNorm, norm.z), lightDir), 0.0, 1.0); 
 	vec3 diffuse = diff * uLightColor * uDiffuseK;
 
+	//interpolates between shade and sun as zero and one values
 	vec3 color = mix(ColorShade, ColorSun, diff);
 
 	vec3 viewDir = normalize(uViewPos - FragPos);
