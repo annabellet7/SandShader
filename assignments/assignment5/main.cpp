@@ -3,6 +3,8 @@
 
 #include <ew/external/glad.h>
 #include <ew/ewMath/ewMath.h>
+#include <ew/mesh.h>
+#include <ew/procGen.h>
 #include <ew/external/stb_image.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -37,6 +39,9 @@ int shininess = 32;
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+
+bool wireFrame = false;
+bool pointRender = false;
 
 int main() {
 	printf("Initializing...\n");
@@ -73,65 +78,17 @@ int main() {
 
 	//-----------------------------------------------------------------------------------------------
 
-	float verts[] = {
-	//	Px	   Py     Pz     Nx     Ny     Nz     U		V
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 0.0f, 0.0f,
-	};
+	ew::MeshData sphereMeshData;
+	ew::MeshData cubeMeshData;
+	ew::createCube(1.0f, &cubeMeshData);
+	ew::createSphere(2.0f, 256, &sphereMeshData);
+	ew::Mesh cubeMesh = ew::Mesh(cubeMeshData);
+	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
 
-	unsigned int indices[] = 
-	{  
-		0, 1, 3,   // first triangle
-		1, 2, 3    // second triangle
-	};
 
-	unsigned int VBO; //vertex buffer object: can stores vertices on GPU memory, can send large amounts of data at a time
-	unsigned int cubeVAO; //vertex array object: has a pointer to a VBO, EBO, and attributes (mesh)
-	unsigned int EBO; //element buffer object: stores indinces
-
-	glGenVertexArrays(1, &cubeVAO);
-	glBindVertexArray(cubeVAO); //sets mesh that is being worked on, do this before binding VBO
-	
-	//copy verts into buffer
-	glGenBuffers(1, &VBO); //generates unique id for buffer
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); //sets buffer that is currently being worked on
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW); //copies previously assigned data into buffer memory
-
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	//set attib pointers
-	//pos
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	//normal 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	//uv
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	unsigned int lampVAO;
-	glGenVertexArrays(1, &lampVAO);
-	glBindVertexArray(lampVAO);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	Texture2D webTexture("assets/Textures/web.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
-	Texture2D boxTexture("assets/Textures/container.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 
 	//set active shader and set textures to units
 	basicLightingShader.Shader::use();
-	glUniform1i(glGetUniformLocation(basicLightingShader.getProgram(), "texture2"), 1);
-	glUniform1i(glGetUniformLocation(basicLightingShader.getProgram(), "texture3"), 2);
 
 	float rotationTime = 0;
 	//Render loop
@@ -151,9 +108,7 @@ int main() {
 		glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-		//bind textures
-		webTexture.Texture2D::bind(1);
-		boxTexture.Texture2D::bind(2);
+		ew::DrawMode drawMode = pointRender ? ew::DrawMode::POINTS : ew::DrawMode::TRIANGLES;
 
 		//use shader
 		basicLightingShader.Shader::use();
@@ -180,31 +135,29 @@ int main() {
 		basicLightingShader.setMat4("view", view);
 		
 		//draw
-		glBindVertexArray(cubeVAO);
-		
-		glm::mat4 model = glm::mat4(1.0f);
-		//float angle = 20.0f * i;
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		model = glm::scale(model, glm::vec3(3.0f, 3.0f, 3.0f));
-		basicLightingShader.setMat4("model", model);
-
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		{
+			//Draw sphere
+			glm::mat4 transform = glm::mat4(1);
+			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			transform = glm::translate(transform, glm::vec3(3.0, 3.0, 0.0));
+			basicLightingShader.setMat4("model", transform);
+			sphereMesh.draw(drawMode);
+		}
 		
 
 		//light cube
 		lampShader.Shader::use();
 		lampShader.setVec3("uLightColor", lightColor);
+
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);
 
-		model = glm::mat4(1.0f);
+		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, lightPos);
 		model = glm::scale(model, glm::vec3(0.2f));
 		lampShader.setMat4("model", model);
 
-		glBindVertexArray(lampVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		cubeMesh.draw(drawMode);
 
 		//draw imgui
 		ImGui_ImplGlfw_NewFrame();
@@ -229,9 +182,6 @@ int main() {
 		glfwSwapBuffers(window);
 	}
 
-	glDeleteVertexArrays(1, &cubeVAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
 	glfwTerminate();
 
 	printf("Shutting down...");
