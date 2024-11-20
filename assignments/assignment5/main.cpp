@@ -31,8 +31,8 @@ const int SCREEN_HEIGHT = 720;
 
 glm::vec3 lightPos(0.0f, 3.0f, 1.0f);
 glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-float ambientK = 0.15f;
-float diffuseK = 1.0f;
+float ambientK = 0.25f;
+float diffuseK = 0.2f;
 float specularK = 1.0f;
 int shininess = 32;
 
@@ -81,19 +81,26 @@ int main() {
 
 	//-----------------------------------------------------------------------------------------------
 
+	ew::MeshData planeMeshData;
 	ew::MeshData sphereMeshData;
 	ew::MeshData cubeMeshData;
+	ew::createPlaneXY(3.0f, 3.0f, 1, &planeMeshData);
 	ew::createCube(1.0f, &cubeMeshData);
 	ew::createSphere(2.0f, 256, &sphereMeshData);
+	ew::Mesh planeMesh = ew::Mesh(planeMeshData);
 	ew::Mesh cubeMesh = ew::Mesh(cubeMeshData);
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
 
-
+	Texture2D grainNormals("assets/NormalMaps/SandGrain.png", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D webTexture("assets/Textures/web.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 
 	//set active shader and set textures to units
 	basicLightingShader.Shader::use();
+	glUniform1i(glGetUniformLocation(basicLightingShader.getProgram(), "normalMap"), 0);
+	glUniform1i(glGetUniformLocation(basicLightingShader.getProgram(), "texture1"), 1);
 
 	float rotationTime = 0;
+
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
 		//update time
@@ -110,6 +117,8 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
 		ew::DrawMode drawMode = pointRender ? ew::DrawMode::POINTS : ew::DrawMode::TRIANGLES;
+		grainNormals.Texture2D::bind(0);
+		webTexture.Texture2D::bind(1);
 
 		//use shader
 		basicLightingShader.Shader::use();
@@ -134,25 +143,29 @@ int main() {
 
 		glm::mat4 view = cam.getViewMatrix();
 		basicLightingShader.setMat4("view", view);
+
+		//Draw plane
+		glm::mat4 planeTransform = glm::mat4(1);
+		planeTransform = glm::rotate(planeTransform, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
+		basicLightingShader.setMat4("model", planeTransform);
+		planeMesh.draw(drawMode);
 		
-		//draw
-		{
-			//Draw sphere
-			glm::mat4 transform = glm::mat4(1);
-			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
-			basicLightingShader.setMat4("model", transform);
-			sphereMesh.draw(drawMode);
-		}
-		
+		////draw
+		//{
+		//	//Draw sphere
+		//	glm::mat4 transform = glm::mat4(1);
+		//	//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		//	transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
+		//	basicLightingShader.setMat4("model", transform);
+		//	sphereMesh.draw(drawMode);
+		//}
 
 		//light cube
 		lampShader.Shader::use();
 		lampShader.setVec3("uLightColor", lightColor);
-
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);
-
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, lightPos);
 		model = glm::scale(model, glm::vec3(0.2f));

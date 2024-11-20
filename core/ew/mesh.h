@@ -11,11 +11,13 @@ namespace ew {
 		glm::vec3 pos = glm::vec3(0);
 		glm::vec3 normal = glm::vec3(0);
 		glm::vec2 uv = glm::vec2(0);
+		glm::vec3 tangent = glm::vec3(0);
+		glm::vec3 bitangent = glm::vec3(0);
 		Vertex() {
 
 		}
-		Vertex(const glm::vec3& pos, const glm::vec3& normal, const glm::vec2& uv):
-			pos(pos),normal(normal),uv(uv){
+		Vertex(const glm::vec3& pos, const glm::vec3& normal, const glm::vec2& uv, const glm::vec3& tangent, const glm::vec3 &bitangent):
+			pos(pos),normal(normal),uv(uv),tangent(tangent),bitangent(bitangent){
 		}
 	};
 

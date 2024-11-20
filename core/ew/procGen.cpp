@@ -25,7 +25,7 @@ namespace ew {
 			pos -= (a + b) * size * 0.5f;
 			pos += (a * (float)col + b * (float)row) * size;
 			const glm::vec2 uv = glm::vec2(col, row);
-			mesh->vertices.emplace_back(pos,normal,uv);
+			mesh->vertices.emplace_back(pos,normal,uv, glm::vec3(0.0f), glm::vec3(0.0f));
 		}
 
 		//Indices
@@ -65,6 +65,7 @@ namespace ew {
 		mesh->indices.clear();
 		mesh->vertices.reserve((subDivisions + 1) * (subDivisions + 1));
 		mesh->indices.reserve(subDivisions * subDivisions * 6);
+
 		for (size_t row = 0; row <= subDivisions; row++)
 		{
 			for (size_t col = 0; col <= subDivisions; col++)
@@ -77,9 +78,39 @@ namespace ew {
 				pos.y = uv.y * height;
 				pos.z = 0;
 				glm::vec3 normal = glm::vec3(0, 0, 1);
-				mesh->vertices.emplace_back(pos,normal,uv);
+				mesh->vertices.emplace_back(pos,normal,uv, glm::vec3(0.0f), glm::vec3(0.0f));
 			}
 		}
+
+		/*for (size_t verts = 1; verts < (subDivisions + 1) * (subDivisions + 1); verts++)
+		{
+			int size = (subDivisions + 1) * (subDivisions + 1);
+			glm::vec3 edgeOne = mesh->vertices[verts].pos - mesh->vertices[verts - 1].pos;
+			glm::vec3 edgeTwo = mesh->vertices[verts + 1].pos - mesh->vertices[verts - 1].pos;
+			glm::vec2 deltaUVOne = mesh->vertices[verts].uv - mesh->vertices[verts - 1].uv;
+			glm::vec2 deltaUVTwo = mesh->vertices[verts + 1].uv - mesh->vertices[verts - 1].uv;
+
+			float f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVTwo.x * deltaUVOne.y);
+
+			glm::vec3 tangent;
+			tangent.x = f * (deltaUVTwo.y * edgeOne.x - deltaUVOne.y * edgeTwo.x);
+			tangent.y = f * (deltaUVTwo.y * edgeOne.y - deltaUVOne.y * edgeTwo.y);
+			tangent.z = f * (deltaUVTwo.y * edgeOne.z - deltaUVOne.y * edgeTwo.z);
+
+			glm::vec3 bitangent;
+			bitangent.x = f * (-deltaUVTwo.x * edgeOne.x + deltaUVOne.x * edgeTwo.x);
+			bitangent.y = f * (-deltaUVTwo.x * edgeOne.y + deltaUVOne.x * edgeTwo.y);
+			bitangent.z = f * (-deltaUVTwo.x * edgeOne.z + deltaUVOne.x * edgeTwo.z);
+
+			mesh->vertices[verts - 1].tangent = tangent;
+			mesh->vertices[verts - 1].bitangent = bitangent;
+
+			mesh->vertices[verts].tangent = tangent;
+			mesh->vertices[verts].bitangent = bitangent;
+
+			mesh->vertices[verts + 1].tangent = tangent;
+			mesh->vertices[verts + 1].bitangent = bitangent;
+		}*/
 		
 		//Indices
 		for (size_t row = 0; row < subDivisions; row++)
@@ -131,7 +162,7 @@ namespace ew {
 				pos.y = cosf(phi) * radius;
 				pos.z = sinf(theta) * sinf(phi) * radius;
 				glm::vec3 normal = glm::normalize(pos);
-				mesh->vertices.emplace_back(pos, normal, uv);
+				mesh->vertices.emplace_back(pos, normal, uv, glm::vec3(0.0f), glm::vec3(0.0f));
 			}
 		}
 
