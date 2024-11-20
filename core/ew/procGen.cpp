@@ -25,7 +25,7 @@ namespace ew {
 			pos -= (a + b) * size * 0.5f;
 			pos += (a * (float)col + b * (float)row) * size;
 			const glm::vec2 uv = glm::vec2(col, row);
-			mesh->vertices.emplace_back(pos,normal,uv, glm::vec3(0.0f), glm::vec3(0.0f));
+			mesh->vertices.emplace_back(pos,normal,uv);
 		}
 
 		//Indices
@@ -78,41 +78,14 @@ namespace ew {
 				pos.y = uv.y * height;
 				pos.z = 0;
 				glm::vec3 normal = glm::vec3(0, 0, 1);
-				mesh->vertices.emplace_back(pos,normal,uv, glm::vec3(0.0f), glm::vec3(0.0f));
+				mesh->vertices.emplace_back(pos,normal,uv);
 			}
 		}
 
-		/*for (size_t verts = 1; verts < (subDivisions + 1) * (subDivisions + 1); verts++)
-		{
-			int size = (subDivisions + 1) * (subDivisions + 1);
-			glm::vec3 edgeOne = mesh->vertices[verts].pos - mesh->vertices[verts - 1].pos;
-			glm::vec3 edgeTwo = mesh->vertices[verts + 1].pos - mesh->vertices[verts - 1].pos;
-			glm::vec2 deltaUVOne = mesh->vertices[verts].uv - mesh->vertices[verts - 1].uv;
-			glm::vec2 deltaUVTwo = mesh->vertices[verts + 1].uv - mesh->vertices[verts - 1].uv;
-
-			float f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVTwo.x * deltaUVOne.y);
-
-			glm::vec3 tangent;
-			tangent.x = f * (deltaUVTwo.y * edgeOne.x - deltaUVOne.y * edgeTwo.x);
-			tangent.y = f * (deltaUVTwo.y * edgeOne.y - deltaUVOne.y * edgeTwo.y);
-			tangent.z = f * (deltaUVTwo.y * edgeOne.z - deltaUVOne.y * edgeTwo.z);
-
-			glm::vec3 bitangent;
-			bitangent.x = f * (-deltaUVTwo.x * edgeOne.x + deltaUVOne.x * edgeTwo.x);
-			bitangent.y = f * (-deltaUVTwo.x * edgeOne.y + deltaUVOne.x * edgeTwo.y);
-			bitangent.z = f * (-deltaUVTwo.x * edgeOne.z + deltaUVOne.x * edgeTwo.z);
-
-			mesh->vertices[verts - 1].tangent = tangent;
-			mesh->vertices[verts - 1].bitangent = bitangent;
-
-			mesh->vertices[verts].tangent = tangent;
-			mesh->vertices[verts].bitangent = bitangent;
-
-			mesh->vertices[verts + 1].tangent = tangent;
-			mesh->vertices[verts + 1].bitangent = bitangent;
-		}*/
+		
 		
 		//Indices
+		int verts = 0;
 		for (size_t row = 0; row < subDivisions; row++)
 		{
 			for (size_t col = 0; col < subDivisions; col++)
@@ -121,11 +94,43 @@ namespace ew {
 				unsigned int br = bl + 1;
 				unsigned int tl = bl + subDivisions + 1;
 				unsigned int tr = tl + 1;
+
 				//Triangle 1
+				/*glm::vec3 edgeOne = mesh->vertices[verts + 1].pos - mesh->vertices[verts].pos;
+				glm::vec3 edgeTwo = mesh->vertices[verts + 2].pos - mesh->vertices[verts].pos;
+				glm::vec2 deltaUVOne = mesh->vertices[verts + 1].uv - mesh->vertices[verts].uv;
+				glm::vec2 deltaUVTwo = mesh->vertices[verts + 2].uv - mesh->vertices[verts].uv;
+
+				float f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVTwo.x * deltaUVOne.y);
+
+				glm::vec3 tangent;
+				tangent.x = f * (deltaUVTwo.y * edgeOne.x - deltaUVOne.y * edgeTwo.x);
+				tangent.y = f * (deltaUVTwo.y * edgeOne.y - deltaUVOne.y * edgeTwo.y);
+				tangent.z = f * (deltaUVTwo.y * edgeOne.z - deltaUVOne.y * edgeTwo.z);
+
+				glm::vec3 bitangent;
+				bitangent.x = f * (-deltaUVTwo.x * edgeOne.x + deltaUVOne.x * edgeTwo.x);
+				bitangent.y = f * (-deltaUVTwo.x * edgeOne.y + deltaUVOne.x * edgeTwo.y);
+				bitangent.z = f * (-deltaUVTwo.x * edgeOne.z + deltaUVOne.x * edgeTwo.z);*/
+				
 				mesh->indices.emplace_back(bl);
 				mesh->indices.emplace_back(br);
 				mesh->indices.emplace_back(tr);
+
 				//Triangle 2
+			/*	edgeOne = mesh->vertices[verts + 2].pos - mesh->vertices[verts + 1].pos;
+				edgeTwo = mesh->vertices[verts + 3].pos - mesh->vertices[verts + 1].pos;
+				deltaUVOne = mesh->vertices[verts + 2].uv - mesh->vertices[verts + 1].uv;
+				deltaUVTwo = mesh->vertices[verts + 3].uv - mesh->vertices[verts + 1].uv;
+
+				tangent.x = f * (deltaUVTwo.y * edgeOne.x - deltaUVOne.y * edgeTwo.x);
+				tangent.y = f * (deltaUVTwo.y * edgeOne.y - deltaUVOne.y * edgeTwo.y);
+				tangent.z = f * (deltaUVTwo.y * edgeOne.z - deltaUVOne.y * edgeTwo.z);
+
+				bitangent.x = f * (-deltaUVTwo.x * edgeOne.x + deltaUVOne.x * edgeTwo.x);
+				bitangent.y = f * (-deltaUVTwo.x * edgeOne.y + deltaUVOne.x * edgeTwo.y);
+				bitangent.z = f * (-deltaUVTwo.x * edgeOne.z + deltaUVOne.x * edgeTwo.z);*/
+
 				mesh->indices.emplace_back(tr);
 				mesh->indices.emplace_back(tl);
 				mesh->indices.emplace_back(bl);
@@ -162,7 +167,7 @@ namespace ew {
 				pos.y = cosf(phi) * radius;
 				pos.z = sinf(theta) * sinf(phi) * radius;
 				glm::vec3 normal = glm::normalize(pos);
-				mesh->vertices.emplace_back(pos, normal, uv, glm::vec3(0.0f), glm::vec3(0.0f));
+				mesh->vertices.emplace_back(pos, normal, uv);
 			}
 		}
 

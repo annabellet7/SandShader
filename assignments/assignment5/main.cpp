@@ -151,7 +151,7 @@ int main() {
 		basicLightingShader.setMat4("model", planeTransform);
 		planeMesh.draw(drawMode);
 		
-		////draw
+		//////draw
 		//{
 		//	//Draw sphere
 		//	glm::mat4 transform = glm::mat4(1);
