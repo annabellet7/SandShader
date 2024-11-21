@@ -7,29 +7,6 @@
 #include <stdlib.h>
 
 namespace ew {
-	void averageOrthognals(MeshData* mesh)
-	{
-		for (size_t i = 0; i < mesh->indices.size() - 1; i++)
-		{
-			if (mesh->vertices[mesh->indices[i]].avTangent == glm::vec3(0.0f))
-			{
-				mesh->vertices[mesh->indices[i]].avTangent = mesh->tangents[i];
-				mesh->vertices[mesh->indices[i]].avBitangent = mesh->bitangents[i];
-			}
-			for (size_t j = i + 1; j < mesh->indices.size(); j++)
-			{
-				if (mesh->vertices[mesh->indices[i]].pos == mesh->vertices[mesh->indices[j]].pos &&
-					mesh->vertices[mesh->indices[i]].uv == mesh->vertices[mesh->indices[j]].uv &&
-					mesh->vertices[mesh->indices[i]].normal == mesh->vertices[mesh->indices[j]].normal)
-				{
-					mesh->vertices[mesh->indices[i]].avTangent = (mesh->vertices[mesh->indices[i]].avTangent + mesh->tangents[j]) / 2.0f;
-					mesh->vertices[mesh->indices[i]].avBitangent = (mesh->vertices[mesh->indices[i]].avBitangent + mesh->bitangents[j]) / 2.0f;
-				}
-			}
-		}
-	}
-
-
 	/// <summary>
 	/// Helper function for createCube. Note that this is not meant to be used standalone
 	/// </summary>
@@ -48,7 +25,7 @@ namespace ew {
 			pos -= (a + b) * size * 0.5f;
 			pos += (a * (float)col + b * (float)row) * size;
 			const glm::vec2 uv = glm::vec2(col, row);
-			mesh->vertices.emplace_back(pos,normal,uv, glm::vec3(0), glm::vec3(0));
+			mesh->vertices.emplace_back(pos,normal,uv);
 		}
 
 		//Indices
@@ -101,7 +78,7 @@ namespace ew {
 				pos.y = uv.y * height;
 				pos.z = 0;
 				glm::vec3 normal = glm::vec3(0, 0, 1);
-				mesh->vertices.emplace_back(pos,normal,uv, glm::vec3(0), glm::vec3(0));
+				mesh->vertices.emplace_back(pos,normal,uv);
 			}
 		}	
 		
@@ -120,61 +97,12 @@ namespace ew {
 				mesh->indices.emplace_back(br);
 				mesh->indices.emplace_back(tr);
 
-				glm::vec3 edgeOne = mesh->vertices[br].pos - mesh->vertices[bl].pos;
-				glm::vec3 edgeTwo = mesh->vertices[tr].pos - mesh->vertices[bl].pos;
-				glm::vec2 deltaUVOne = mesh->vertices[br].uv - mesh->vertices[bl].uv;
-				glm::vec2 deltaUVTwo = mesh->vertices[tr].uv - mesh->vertices[bl].uv;
-
-				float f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVTwo.x * deltaUVOne.y);
-
-				glm::vec3 tangent;
-				tangent.x = f * (deltaUVTwo.y * edgeOne.x - deltaUVOne.y * edgeTwo.x);
-				tangent.y = f * (deltaUVTwo.y * edgeOne.y - deltaUVOne.y * edgeTwo.y);
-				tangent.z = f * (deltaUVTwo.y * edgeOne.z - deltaUVOne.y * edgeTwo.z);
-
-				glm::vec3 bitangent;
-				bitangent.x = f * (-deltaUVTwo.x * edgeOne.x + deltaUVOne.x * edgeTwo.x);
-				bitangent.y = f * (-deltaUVTwo.x * edgeOne.y + deltaUVOne.x * edgeTwo.y);
-				bitangent.z = f * (-deltaUVTwo.x * edgeOne.z + deltaUVOne.x * edgeTwo.z);
-
-				mesh->tangents.emplace_back(tangent);
-				mesh->tangents.emplace_back(tangent);
-				mesh->tangents.emplace_back(tangent);
-
-				mesh->bitangents.emplace_back(bitangent);
-				mesh->bitangents.emplace_back(bitangent);
-				mesh->bitangents.emplace_back(bitangent);
-
 				//Triangle 2
 				mesh->indices.emplace_back(tr);
 				mesh->indices.emplace_back(tl);
 				mesh->indices.emplace_back(bl);
-
-				edgeOne = mesh->vertices[tr].pos - mesh->vertices[bl].pos;
-				edgeTwo = mesh->vertices[tl].pos - mesh->vertices[bl].pos;
-				deltaUVOne = mesh->vertices[tr].uv - mesh->vertices[bl].uv;
-				deltaUVTwo = mesh->vertices[tl].uv - mesh->vertices[bl].uv;
-
-				tangent.x = f * (deltaUVTwo.y * edgeOne.x - deltaUVOne.y * edgeTwo.x);
-				tangent.y = f * (deltaUVTwo.y * edgeOne.y - deltaUVOne.y * edgeTwo.y);
-				tangent.z = f * (deltaUVTwo.y * edgeOne.z - deltaUVOne.y * edgeTwo.z);
-
-				bitangent.x = f * (-deltaUVTwo.x * edgeOne.x + deltaUVOne.x * edgeTwo.x);
-				bitangent.y = f * (-deltaUVTwo.x * edgeOne.y + deltaUVOne.x * edgeTwo.y);
-				bitangent.z = f * (-deltaUVTwo.x * edgeOne.z + deltaUVOne.x * edgeTwo.z);
-
-				mesh->tangents.emplace_back(tangent);
-				mesh->tangents.emplace_back(tangent);
-				mesh->tangents.emplace_back(tangent);
-
-				mesh->bitangents.emplace_back(bitangent);
-				mesh->bitangents.emplace_back(bitangent);
-				mesh->bitangents.emplace_back(bitangent);
 			}
 		}
-
-		averageOrthognals(mesh);
-
 		return;
 	}
 
@@ -206,7 +134,7 @@ namespace ew {
 				pos.y = cosf(phi) * radius;
 				pos.z = sinf(theta) * sinf(phi) * radius;
 				glm::vec3 normal = glm::normalize(pos);
-				mesh->vertices.emplace_back(pos, normal, uv, glm::vec3(0), glm::vec3(0));
+				mesh->vertices.emplace_back(pos, normal, uv);
 			}
 		}
 
@@ -223,6 +151,7 @@ namespace ew {
 				mesh->indices.emplace_back(bl);
 				mesh->indices.emplace_back(br);
 				mesh->indices.emplace_back(tr);
+
 				//Triangle 2
 				mesh->indices.emplace_back(tr);
 				mesh->indices.emplace_back(tl);

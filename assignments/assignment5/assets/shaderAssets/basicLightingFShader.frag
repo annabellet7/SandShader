@@ -21,28 +21,24 @@ uniform float uDiffuseK;
 uniform float uSpecularK;
 uniform int uShininess;
 
+uniform float uSandStrength;
+
 void main()
 { 
 	vec3 ambient = uAmbientK * uLightColor;
 
-	vec3 norm = texture(normalMap, TexCoord).rgb;
-	//vec3 web = texture(texture1, TexCoord).rgb;
+	vec3 norm = texture(normalMap, TexCoord).rgb; //grain norms
 	norm = normalize(norm * 2.0 - 1.0);
-	//norm = normalize(Normal);
+	norm = mix(Normal, norm, uSandStrength);
 
 	//Ripple Norms
 
-	//Grain Norms
-
 	//diffuse shader
 	vec3 lightDir = normalize(uLightPos - FragPos);
-	//shadows be more vertical?? - ask about
-	float yNorm = norm.y * 0.3;
-	//causes the normal lambert shader to have a less gradual change/change faster 
-	float diff = clamp(4 * dot(vec3(norm.x, yNorm, norm.z), lightDir), 0.0, 1.0); 
+	float yNorm = norm.y * 0.3; //squishes shadows vertically 
+	float diff = clamp(4 * dot(vec3(norm.x, yNorm, norm.z), lightDir), 0.0, 1.0); //causes the normal lambert shader to have a less gradual change/change faster 
 
-	//interpolates between shade and sun as zero and one values
-	vec3 color = mix(ColorShade, ColorSun, diff);
+	vec3 color = mix(ColorShade, ColorSun, diff); //interpolates between shade and sun as zero and one values
 	vec3 diffuse = diff * uLightColor * uDiffuseK * color;
 
 	vec3 viewDir = normalize(uViewPos - FragPos);

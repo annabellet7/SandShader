@@ -35,6 +35,8 @@ float ambientK = 0.25f;
 float diffuseK = 0.2f;
 float specularK = 1.0f;
 int shininess = 32;
+float sandStrength = 0.4f;
+float grainSize = 5.0f;
 
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -84,7 +86,7 @@ int main() {
 	ew::MeshData planeMeshData;
 	ew::MeshData sphereMeshData;
 	ew::MeshData cubeMeshData;
-	ew::createPlaneXY(3.0f, 3.0f, 1, &planeMeshData);
+	ew::createPlaneXY(3.0f, 3.0f, 40, &planeMeshData);
 	ew::createCube(1.0f, &cubeMeshData);
 	ew::createSphere(2.0f, 256, &sphereMeshData);
 	ew::Mesh planeMesh = ew::Mesh(planeMeshData);
@@ -100,7 +102,6 @@ int main() {
 	glUniform1i(glGetUniformLocation(basicLightingShader.getProgram(), "texture1"), 1);
 
 	float rotationTime = 0;
-
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
 		//update time
@@ -130,6 +131,8 @@ int main() {
 		basicLightingShader.setFloat("uDiffuseK", diffuseK);
 		basicLightingShader.setFloat("uSpecularK", specularK);
 		basicLightingShader.setInt("uShininess", shininess);
+		basicLightingShader.setFloat("uSandStrength", sandStrength);
+		basicLightingShader.setFloat("uGrainSize", grainSize);
 
 		//update uniform
 		//time
@@ -145,21 +148,21 @@ int main() {
 		basicLightingShader.setMat4("view", view);
 
 		//Draw plane
-		glm::mat4 planeTransform = glm::mat4(1);
+		/*glm::mat4 planeTransform = glm::mat4(1);
 		planeTransform = glm::rotate(planeTransform, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
 		basicLightingShader.setMat4("model", planeTransform);
-		planeMesh.draw(drawMode);
+		planeMesh.draw(drawMode);*/
 		
-		//////draw
-		//{
-		//	//Draw sphere
-		//	glm::mat4 transform = glm::mat4(1);
-		//	//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		//	transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
-		//	basicLightingShader.setMat4("model", transform);
-		//	sphereMesh.draw(drawMode);
-		//}
+		////draw
+		{
+			//Draw sphere
+			glm::mat4 transform = glm::mat4(1);
+			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
+			basicLightingShader.setMat4("model", transform);
+			sphereMesh.draw(drawMode);
+		}
 
 		//light cube
 		lampShader.Shader::use();
