@@ -29,7 +29,7 @@ void main()
 
 	vec3 norm = texture(normalMap, TexCoord).rgb; //grain norms
 	norm = normalize(norm * 2.0 - 1.0);
-	norm = mix(Normal, norm, uSandStrength);
+	norm = normalize(mix(Normal, norm, uSandStrength));
 
 	//Ripple Norms
 

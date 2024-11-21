@@ -36,7 +36,7 @@ float diffuseK = 0.2f;
 float specularK = 1.0f;
 int shininess = 32;
 float sandStrength = 0.4f;
-float grainSize = 5.0f;
+float grainSize = 10.0f;
 
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
