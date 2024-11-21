@@ -29,14 +29,14 @@ float lastX = 400, lastY = 300;
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720; 
 
-glm::vec3 lightPos(0.0f, 3.0f, 1.0f);
+glm::vec3 lightPos(4.5f, 3.0f, 1.0f);
 glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 float ambientK = 0.25f;
 float diffuseK = 0.2f;
 float specularK = 1.0f;
 int shininess = 32;
 float sandStrength = 0.4f;
-float grainSize = 10.0f;
+float grainSize = 20.0f;
 
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);

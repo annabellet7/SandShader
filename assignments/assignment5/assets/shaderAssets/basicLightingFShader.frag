@@ -27,8 +27,8 @@ void main()
 { 
 	vec3 ambient = uAmbientK * uLightColor;
 
-	vec3 norm = texture(normalMap, TexCoord).rgb; //grain norms
-	norm = normalize(norm * 2.0 - 1.0);
+	vec3 norm = normalize(texture(normalMap, TexCoord).rgb); //grain norms
+	norm = normalize((norm * 2.0 - 1.0) * 2.0);
 	norm = normalize(mix(Normal, norm, uSandStrength));
 
 	//Ripple Norms
