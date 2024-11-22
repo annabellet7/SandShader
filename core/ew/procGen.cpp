@@ -25,6 +25,7 @@ namespace ew {
 				}
 			}
 		}
+
 		return;
 	}
 
@@ -119,42 +120,66 @@ namespace ew {
 				mesh->indices.emplace_back(br);
 				mesh->indices.emplace_back(tr);
 
-				glm::vec3 edgeOne = mesh->vertices[br].pos - mesh->vertices[bl].pos;
-				glm::vec3 edgeTwo = mesh->vertices[tr].pos - mesh->vertices[bl].pos;
-				glm::vec2 deltaUVOne = mesh->vertices[br].uv - mesh->vertices[bl].uv;
-				glm::vec2 deltaUVTwo = mesh->vertices[tr].uv - mesh->vertices[bl].uv;
-
-				float f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVTwo.x * deltaUVOne.y);
-
-				glm::vec3 tangent;
-				tangent.x = f * (deltaUVTwo.y * edgeOne.x - deltaUVOne.y * edgeTwo.x);
-				tangent.y = f * (deltaUVTwo.y * edgeOne.y - deltaUVOne.y * edgeTwo.y);
-				tangent.z = f * (deltaUVTwo.y * edgeOne.z - deltaUVOne.y * edgeTwo.z);
-
-				mesh->tangents.emplace_back(tangent);
-				mesh->tangents.emplace_back(tangent);
-				mesh->tangents.emplace_back(tangent);
-
 				//Triangle 2
 				mesh->indices.emplace_back(tr);
 				mesh->indices.emplace_back(tl);
 				mesh->indices.emplace_back(bl);
-
-				edgeOne = mesh->vertices[tr].pos - mesh->vertices[bl].pos;
-				edgeTwo = mesh->vertices[tl].pos - mesh->vertices[bl].pos;
-				deltaUVOne = mesh->vertices[tr].uv - mesh->vertices[bl].uv;
-				deltaUVTwo = mesh->vertices[tl].uv - mesh->vertices[bl].uv;
-
-				f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVTwo.x * deltaUVOne.y);
-
-				tangent.x = f * (deltaUVTwo.y * edgeOne.x - deltaUVOne.y * edgeTwo.x);
-				tangent.y = f * (deltaUVTwo.y * edgeOne.y - deltaUVOne.y * edgeTwo.y);
-				tangent.z = f * (deltaUVTwo.y * edgeOne.z - deltaUVOne.y * edgeTwo.z);
-
-				mesh->tangents.emplace_back(tangent);
-				mesh->tangents.emplace_back(tangent);
-				mesh->tangents.emplace_back(tangent);
 			}
+		}
+
+		for (int i = 0; i < mesh->vertices.size() - 1; i += 3)
+		{
+			//triagnle one
+			//positions
+			glm::vec3 posOne = mesh->vertices[i].pos;
+			glm::vec3 posTwo = mesh->vertices[i + 1].pos;
+			glm::vec3 posThree = mesh->vertices[i + 2].pos;
+
+			//uvs
+			glm::vec2 UVOne = mesh->vertices[i].uv;
+			glm::vec2 UVTwo = mesh->vertices[i + 1].uv;
+			glm::vec2 UVThree = mesh->vertices[i + 2].uv;
+
+			//triangle edges
+			glm::vec3 deltaPosOne = posTwo - posOne;
+			glm::vec3 deltaPosTwo = posThree - posOne;
+
+			//uv delta
+			glm::vec2 deltaUVOne = UVTwo - UVOne;
+			glm::vec2 deltaUVTwo = UVThree - UVOne;
+
+			float f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVOne.y - deltaUVTwo.x);
+			glm::vec3 tangent = f * (deltaPosOne * deltaUVTwo.y - deltaPosTwo * deltaUVOne.y);
+
+			/*mesh->tangents.emplace_back(tangent);
+			mesh->tangents.emplace_back(tangent);
+			mesh->tangents.emplace_back(tangent);*/
+
+			//triangle two
+			//positions
+			posOne = mesh->vertices[i + 1].pos;
+			posTwo = mesh->vertices[i + 2].pos;
+			posThree = mesh->vertices[i + 3].pos;
+
+			//uvs
+			UVOne = mesh->vertices[i + 1].uv;
+			UVTwo = mesh->vertices[i + 2].uv;
+			UVThree = mesh->vertices[i + 3].uv;
+
+			//triangle edges
+			deltaPosOne = posTwo - posOne;
+			deltaPosTwo = posThree - posOne;
+
+			//uv delta
+			deltaUVOne = UVTwo - UVOne;
+			deltaUVTwo = UVThree - UVOne;
+
+			f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVOne.y - deltaUVTwo.x);
+			tangent = f * (deltaPosOne * deltaUVTwo.y - deltaPosTwo * deltaUVOne.y);
+
+			/*mesh->tangents.emplace_back(tangent);
+			mesh->tangents.emplace_back(tangent);
+			mesh->tangents.emplace_back(tangent);*/
 		}
 
 		//averageTangents(mesh);

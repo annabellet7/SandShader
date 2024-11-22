@@ -14,7 +14,7 @@
 	public:
 		unsigned int mId;
 
-		Shader(const char* vertexPath, const char* fragmentPath);
+		Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr);
 
 		void use();
 		unsigned int getProgram();
