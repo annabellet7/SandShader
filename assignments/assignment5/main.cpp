@@ -29,14 +29,16 @@ float lastX = 400, lastY = 300;
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720; 
 
-glm::vec3 lightPos(4.5f, 3.0f, 1.0f);
-glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+glm::vec3 lightDirection(4.5f, 3.0f, 1.0f);
+glm::vec3 lightColor(0.898f, 0.863f, 0.757f);
 float ambientK = 0.25f;
 float diffuseK = 0.2f;
 float specularK = 1.0f;
 int shininess = 32;
 float sandStrength = 0.4f;
-float grainSize = 20.0f;
+float grainSize = 5.0f;
+float rimStrength = 3.0f;
+float rimPower = 4.5f;
 
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -86,14 +88,14 @@ int main() {
 	ew::MeshData planeMeshData;
 	ew::MeshData sphereMeshData;
 	ew::MeshData cubeMeshData;
-	ew::createPlaneXY(3.0f, 3.0f, 40, &planeMeshData);
+	ew::createPlaneXY(6.0f, 6.0f, 40, &planeMeshData);
 	ew::createCube(1.0f, &cubeMeshData);
 	ew::createSphere(2.0f, 256, &sphereMeshData);
 	ew::Mesh planeMesh = ew::Mesh(planeMeshData);
 	ew::Mesh cubeMesh = ew::Mesh(cubeMeshData);
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
 
-	Texture2D grainNormals("assets/NormalMaps/SandGrain.png", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D grainNormals("assets/NormalMaps/grainNormals.png", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D webTexture("assets/Textures/web.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 
 	//set active shader and set textures to units
@@ -124,7 +126,7 @@ int main() {
 		//use shader
 		basicLightingShader.Shader::use();
 		basicLightingShader.setVec3("uLightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-		basicLightingShader.setVec3("uLightPos", lightPos);
+		basicLightingShader.setVec3("uLightDirection", lightDirection);
 		basicLightingShader.setVec3("uViewPos", cam.getPos());
 		basicLightingShader.setVec3("uLightColor", lightColor);
 		basicLightingShader.setFloat("uAmbientK", ambientK);
@@ -133,6 +135,8 @@ int main() {
 		basicLightingShader.setInt("uShininess", shininess);
 		basicLightingShader.setFloat("uSandStrength", sandStrength);
 		basicLightingShader.setFloat("uGrainSize", grainSize);
+		basicLightingShader.setFloat("uRimStrength", rimStrength);
+		basicLightingShader.setFloat("uRimPower", rimPower);
 
 		//update uniform
 		//time
@@ -170,7 +174,7 @@ int main() {
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);
 		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
+		model = glm::translate(model, lightDirection);
 		model = glm::scale(model, glm::vec3(0.2f));
 		lampShader.setMat4("model", model);
 
@@ -183,7 +187,7 @@ int main() {
 
 		//imgui window
 		ImGui::Begin("Settings");
-		ImGui::DragFloat3("Light Position", &lightPos.x, 0.1f);
+		ImGui::DragFloat3("Light Position", &lightDirection.x, 0.1f);
 		ImGui::ColorEdit3("Light Color", &lightColor.r);
 		ImGui::SliderFloat("Ambient K", &ambientK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Diffuse K", &diffuseK, 0.0f, 1.0f);
