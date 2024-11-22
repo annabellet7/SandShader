@@ -22,14 +22,14 @@
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera cam(glm::vec3(0.0f, 0.0f, 10.0f));
+Camera cam(glm::vec3(0.0f, 0.0f, 20.0f));
 bool firstMouse = true;
 float lastX = 400, lastY = 300;
 
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720; 
 
-glm::vec3 lightDirection(-5.0f, -5.0f, -5.0f);
+glm::vec3 lightDirection(0.0f, -1.0f, 2.0f);
 glm::vec3 lightColor(0.898f, 0.863f, 0.757f);
 float ambientK = 0.6f;
 float diffuseK = 0.2f;
@@ -187,7 +187,7 @@ int main() {
 			sphereMesh.draw(drawMode);
 
 			//normals
-			normalShader.Shader::use();
+			/*normalShader.Shader::use();
 			normalShader.setMat4("projection", projection); 
 			normalShader.setMat4("view", view);  
 			normalShader.setMat4("model", transform); 
@@ -197,7 +197,7 @@ int main() {
 			tangentShader.setMat4("projection", projection);
 			tangentShader.setMat4("view", view);
 			tangentShader.setMat4("model", transform);
-			sphereMesh.draw(drawMode);
+			sphereMesh.draw(drawMode);*/
 		}
 
 
