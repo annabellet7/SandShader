@@ -6,6 +6,9 @@ in vec3 ColorShade;
 in vec3 ColorSun;
 in vec3 FragPos;
 in vec3 Normal;
+in mat3 TBN;
+in vec3 LightDirection;
+in vec3 ViewPos;
 
 uniform sampler2D normalMap;
 uniform sampler2D texture1;
@@ -18,8 +21,10 @@ uniform vec3 uViewPos;
 
 uniform float uAmbientK;
 uniform float uDiffuseK;
-uniform float uSpecularK;
-uniform int uShininess;
+uniform float uOceanSpecularK;
+uniform float uOceanShininess;
+uniform float uGrainSpecularK;
+uniform float uGrainShininess;
 
 uniform float uSandStrength;
 uniform float uRimStrength;
@@ -30,16 +35,15 @@ void main()
 	vec3 ambient = uAmbientK * uLightColor;
 
 	vec3 norm = normalize(texture(normalMap, TexCoord).rgb); //grain norms
-	norm = normalize((norm * 2.0 - 1.0));
-	//norm = Normal;
-	norm = normalize(mix(Normal, norm, uSandStrength));
+	norm = normalize((norm * 2.0 - 1.0) * 2.0);
+
 
 	//Ripple Norms
 
-	//diffuse shader (modified lambert)
-	vec3 viewDir = normalize(uViewPos - FragPos);
-	vec3 lightDir = normalize(uLightDirection);
+	vec3 viewDir =  normalize(ViewPos - FragPos);
+	vec3 lightDir = normalize(-LightDirection);
 
+	//diffuse shader (modified lambert)
 	float yNorm = norm.y * 0.3; //squishes shadows vertically 
 	float diff = clamp(4 * dot(vec3(norm.x, yNorm, norm.z), lightDir), 0.0, 1.0); //causes the normal lambert shader to have a less gradual change/change faster 
 	float rim = 1.0 - clamp(dot(vec3(norm.x, yNorm, norm.z), viewDir), 0.0, 1.0); //rim lighting 
@@ -49,9 +53,12 @@ void main()
 
 	//"ocean" specular (Blinn-Phong reflectance)
 	vec3 halfwayDir = normalize(lightDir + viewDir);
-	float spec = pow(max(dot(norm, halfwayDir), 0.0), uShininess);
-	vec3  specular = uLightColor * spec * uSpecularK;
+	float spec = pow(max(dot(norm, halfwayDir), 0.0), uOceanShininess);
+	vec3  oceanSpecular = uLightColor * spec * uOceanSpecularK;
 
-	vec3 result = (ambient + diffuse + specular) * color;
+	spec = pow(max(dot(norm, viewDir), 0.0), uGrainShininess);
+	vec3  grainSpecular = uLightColor * spec * uGrainSpecularK;
+
+	vec3 result = (ambient + diffuse + oceanSpecular + grainSpecular) * color;
 	FragColor = vec4(result, 1.0);
 }

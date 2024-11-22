@@ -29,16 +29,18 @@ float lastX = 400, lastY = 300;
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720; 
 
-glm::vec3 lightDirection(4.5f, 5.0f, 1.0f);
+glm::vec3 lightDirection(-5.0f, -5.0f, -5.0f);
 glm::vec3 lightColor(0.898f, 0.863f, 0.757f);
-float ambientK = 0.25f;
+float ambientK = 0.6f;
 float diffuseK = 0.2f;
-float specularK = 1.0f;
-int shininess = 32;
+float oceanSpecularK = 1.0f;
+float oceanShininess = 32;
+float grainSpecularK = 0.8f;
+float grainShininess = 850;
 float sandStrength = 0.4f;
 float grainSize = 5.0f;
-float rimStrength = 3.0f;
-float rimPower = 4.5f;
+float rimStrength = 0.2f;
+float rimPower = 10.0f;
 
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -82,6 +84,7 @@ int main() {
 
 	Shader sandShader("assets/shaderAssets/basicLightingVShader.vert", "assets/shaderAssets/basicLightingFShader.frag");
 	Shader normalShader("assets/shaderAssets/normalVisualization.vert", "assets/shaderAssets/normalVisualization.frag", "assets/shaderAssets/normalVisualization.geom");
+	Shader tangentShader("assets/shaderAssets/tangentVisualization.vert", "assets/shaderAssets/tangentVisualization.frag", "assets/shaderAssets/tangentVisualization.geom");
 	Shader lampShader("assets/shaderAssets/lampVShader.vert", "assets/shaderAssets/lampFShader.frag");
 
 	//-----------------------------------------------------------------------------------------------
@@ -132,8 +135,10 @@ int main() {
 		sandShader.setVec3("uLightColor", lightColor);
 		sandShader.setFloat("uAmbientK", ambientK);
 		sandShader.setFloat("uDiffuseK", diffuseK);
-		sandShader.setFloat("uSpecularK", specularK);
-		sandShader.setInt("uShininess", shininess);
+		sandShader.setFloat("uOceanSpecularK", oceanSpecularK);
+		sandShader.setFloat ("uOceanShininess", oceanShininess);
+		sandShader.setFloat("uGrainSpecularK", grainSpecularK);
+		sandShader.setFloat("uGrainShininess", grainShininess);
 		sandShader.setFloat("uSandStrength", sandStrength);
 		sandShader.setFloat("uGrainSize", grainSize);
 		sandShader.setFloat("uRimStrength", rimStrength);
@@ -163,14 +168,21 @@ int main() {
 		normalShader.setMat4("projection", projection); 
 		normalShader.setMat4("view", view);  
 		normalShader.setMat4("model", planeTransform);
+		planeMesh.draw(drawMode);
+
+		tangentShader.Shader::use();
+		tangentShader.setMat4("projection", projection);
+		tangentShader.setMat4("view", view);
+		tangentShader.setMat4("model", planeTransform);
 		planeMesh.draw(drawMode);*/
 
 		////draw
 		{
-			////Draw sphere
+			//Draw sphere
 			glm::mat4 transform = glm::mat4(1);
 			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 			transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
+			transform = glm::scale(transform, glm::vec3(2.0f));
 			sandShader.setMat4("model", transform);
 			sphereMesh.draw(drawMode);
 
@@ -180,6 +192,12 @@ int main() {
 			normalShader.setMat4("view", view);  
 			normalShader.setMat4("model", transform); 
 			sphereMesh.draw(drawMode);
+
+			tangentShader.Shader::use();
+			tangentShader.setMat4("projection", projection);
+			tangentShader.setMat4("view", view);
+			tangentShader.setMat4("model", transform);
+			sphereMesh.draw(drawMode);
 		}
 
 
@@ -188,6 +206,7 @@ int main() {
 		lampShader.setVec3("uLightColor", lightColor);
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);
+
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, lightDirection);
 		model = glm::scale(model, glm::vec3(0.2f));
@@ -206,8 +225,10 @@ int main() {
 		ImGui::ColorEdit3("Light Color", &lightColor.r);
 		ImGui::SliderFloat("Ambient K", &ambientK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Diffuse K", &diffuseK, 0.0f, 1.0f);
-		ImGui::SliderFloat("Specular K", &specularK, 0.0f, 1.0f);
-		ImGui::SliderInt("Shininess", &shininess, 2, 1024);
+		ImGui::SliderFloat("Ocean Specular K", &oceanSpecularK, 0.0f, 1.0f);
+		ImGui::SliderFloat("Ocean Shininess", &oceanShininess, 2, 1024);
+		ImGui::SliderFloat("Grain Specular K", &grainSpecularK, 0.0f, 1.0f);
+		ImGui::SliderFloat("Grain Shininess", &grainShininess, 2, 1024);
 		ImGui::End();
 
 		//render imgui
