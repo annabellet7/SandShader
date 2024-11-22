@@ -167,7 +167,7 @@ int main() {
 
 		////draw
 		{
-			//Draw sphere
+			////Draw sphere
 			glm::mat4 transform = glm::mat4(1);
 			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 			transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));

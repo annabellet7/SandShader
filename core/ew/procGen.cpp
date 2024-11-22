@@ -7,29 +7,7 @@
 #include <stdlib.h>
 
 namespace ew {
-	void averageTangents(MeshData* mesh)
-	{
-		for (size_t i = 0; i < mesh->indices.size() - 1; i++)
-		{
-			if (mesh->vertices[mesh->indices[i]].avTangent == glm::vec3(0.0f))
-			{
-				mesh->vertices[mesh->indices[i]].avTangent = mesh->tangents[i];
-			}
-			for (size_t j = i + 1; j < mesh->indices.size(); j++)
-			{
-				if (mesh->vertices[mesh->indices[i]].pos == mesh->vertices[mesh->indices[j]].pos &&
-					mesh->vertices[mesh->indices[i]].uv == mesh->vertices[mesh->indices[j]].uv &&
-					mesh->vertices[mesh->indices[i]].normal == mesh->vertices[mesh->indices[j]].normal)
-				{
-					mesh->vertices[mesh->indices[i]].avTangent = (mesh->vertices[mesh->indices[i]].avTangent + mesh->tangents[j]) / 2.0f;
-				}
-			}
-		}
-
-		return;
-	}
-
-	/// <summary>
+		/// <summary>
 	/// Helper function for createCube. Note that this is not meant to be used standalone
 	/// </summary>
 	/// <param name="normal">Normal direction of the face</param>
@@ -87,7 +65,6 @@ namespace ew {
 		mesh->indices.clear();
 		mesh->vertices.reserve((subDivisions + 1) * (subDivisions + 1));
 		mesh->indices.reserve(subDivisions * subDivisions * 6);
-		mesh->tangents.reserve(subDivisions * subDivisions * 6);
 
 		for (size_t row = 0; row <= subDivisions; row++)
 		{
@@ -101,7 +78,8 @@ namespace ew {
 				pos.y = uv.y * height;
 				pos.z = 0;
 				glm::vec3 normal = glm::vec3(0, 0, 1);
-				mesh->vertices.emplace_back(pos,normal,uv, glm::vec3(0));
+				glm::vec3 tangent = glm::vec3(1, 0, 0); 
+				mesh->vertices.emplace_back(pos,normal,uv, tangent);
 			}
 		}	
 		
@@ -126,63 +104,6 @@ namespace ew {
 				mesh->indices.emplace_back(bl);
 			}
 		}
-
-		for (int i = 0; i < mesh->vertices.size() - 1; i += 3)
-		{
-			//triagnle one
-			//positions
-			glm::vec3 posOne = mesh->vertices[i].pos;
-			glm::vec3 posTwo = mesh->vertices[i + 1].pos;
-			glm::vec3 posThree = mesh->vertices[i + 2].pos;
-
-			//uvs
-			glm::vec2 UVOne = mesh->vertices[i].uv;
-			glm::vec2 UVTwo = mesh->vertices[i + 1].uv;
-			glm::vec2 UVThree = mesh->vertices[i + 2].uv;
-
-			//triangle edges
-			glm::vec3 deltaPosOne = posTwo - posOne;
-			glm::vec3 deltaPosTwo = posThree - posOne;
-
-			//uv delta
-			glm::vec2 deltaUVOne = UVTwo - UVOne;
-			glm::vec2 deltaUVTwo = UVThree - UVOne;
-
-			float f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVOne.y - deltaUVTwo.x);
-			glm::vec3 tangent = f * (deltaPosOne * deltaUVTwo.y - deltaPosTwo * deltaUVOne.y);
-
-			/*mesh->tangents.emplace_back(tangent);
-			mesh->tangents.emplace_back(tangent);
-			mesh->tangents.emplace_back(tangent);*/
-
-			//triangle two
-			//positions
-			posOne = mesh->vertices[i + 1].pos;
-			posTwo = mesh->vertices[i + 2].pos;
-			posThree = mesh->vertices[i + 3].pos;
-
-			//uvs
-			UVOne = mesh->vertices[i + 1].uv;
-			UVTwo = mesh->vertices[i + 2].uv;
-			UVThree = mesh->vertices[i + 3].uv;
-
-			//triangle edges
-			deltaPosOne = posTwo - posOne;
-			deltaPosTwo = posThree - posOne;
-
-			//uv delta
-			deltaUVOne = UVTwo - UVOne;
-			deltaUVTwo = UVThree - UVOne;
-
-			f = 1.0f / (deltaUVOne.x * deltaUVTwo.y - deltaUVOne.y - deltaUVTwo.x);
-			tangent = f * (deltaPosOne * deltaUVTwo.y - deltaPosTwo * deltaUVOne.y);
-
-			/*mesh->tangents.emplace_back(tangent);
-			mesh->tangents.emplace_back(tangent);
-			mesh->tangents.emplace_back(tangent);*/
-		}
-
-		//averageTangents(mesh);
 
 		return;
 	}
@@ -215,7 +136,9 @@ namespace ew {
 				pos.y = cosf(phi) * radius;
 				pos.z = sinf(theta) * sinf(phi) * radius;
 				glm::vec3 normal = glm::normalize(pos);
-				mesh->vertices.emplace_back(pos, normal, uv, glm::vec3(0));
+				glm::vec3 up = glm::vec3(0, 1, 0);
+				glm::vec3 tangent = glm::cross(up, normal);
+				mesh->vertices.emplace_back(pos, normal, uv, tangent);
 			}
 		}
 
