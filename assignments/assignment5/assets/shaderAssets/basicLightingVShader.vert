@@ -12,6 +12,7 @@ uniform mat4 projection;
 
 uniform vec3 uLightDirection;
 uniform vec3 uViewPos;
+uniform vec3 uUp;
 
 uniform float uGrainSize;
 
@@ -22,6 +23,7 @@ out vec3 FragPos;
 out vec3 LightDirection;
 out vec3 ViewPos;
 out vec3 Normal;
+out vec3 Up;
 
 void main()
 {
@@ -38,6 +40,8 @@ void main()
     LightDirection = TBN * uLightDirection;
     ViewPos = TBN * uViewPos;
     FragPos = TBN * FragPos;
+
+    Up = TBN * uUp;
 
     ColorShade = vec3(0.851, 0.631, 0.565);
     ColorSun = vec3(0.925, 0.796, 0.718);

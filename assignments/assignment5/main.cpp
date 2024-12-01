@@ -29,8 +29,9 @@ float lastX = 400, lastY = 300;
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720; 
 
-glm::vec3 lightDirection(0.0f, -1.0f, 2.0f);
+glm::vec3 lightDirection(-0.3f, -1.0f, 2.0f);
 glm::vec3 lightColor(0.898f, 0.863f, 0.757f);
+glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
 float ambientK = 0.6f;
 float diffuseK = 0.2f;
 float oceanSpecularK = 1.0f;
@@ -41,6 +42,7 @@ float sandStrength = 0.4f;
 float grainSize = 5.0f;
 float rimStrength = 0.2f;
 float rimPower = 10.0f;
+float rippleStrength = 5.0f;
 
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -100,7 +102,9 @@ int main() {
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
 
 	Texture2D grainNormals("assets/NormalMaps/grainNormals.png", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
-	Texture2D webTexture("assets/Textures/web.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D shallowRipplesX("assets/NormalMaps/sandShallowX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D steepRipplesX("assets/NormalMaps/sandSteepX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	//Texture2D webTexture("assets/Textures/web.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 
 	//set active shader and set textures to units
 	sandShader.Shader::use();
@@ -125,7 +129,8 @@ int main() {
 
 		ew::DrawMode drawMode = pointRender ? ew::DrawMode::POINTS : ew::DrawMode::TRIANGLES;
 		grainNormals.Texture2D::bind(0);
-		webTexture.Texture2D::bind(1);
+		shallowRipplesX.Texture2D::bind(1);
+		steepRipplesX.Texture2D::bind(2);
 
 		//use shader
 		sandShader.Shader::use();
@@ -143,6 +148,7 @@ int main() {
 		sandShader.setFloat("uGrainSize", grainSize);
 		sandShader.setFloat("uRimStrength", rimStrength);
 		sandShader.setFloat("uRimPower", rimPower);
+		sandShader.setFloat("uSteepnessStrength", rippleStrength);
 
 		//update uniform
 		//time
@@ -178,7 +184,7 @@ int main() {
 
 		////draw
 		{
-			//Draw sphere
+			////Draw sphere
 			glm::mat4 transform = glm::mat4(1);
 			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 			transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
