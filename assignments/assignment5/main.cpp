@@ -34,7 +34,7 @@ glm::vec3 lightColor(0.898f, 0.863f, 0.757f);
 glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
 float ambientK = 0.6f;
 float diffuseK = 0.2f;
-float oceanSpecularK = 1.0f;
+float oceanSpecularK = 0.8f;
 float oceanShininess = 32;
 float grainSpecularK = 0.8f;
 float grainShininess = 850;
@@ -94,7 +94,7 @@ int main() {
 	ew::MeshData planeMeshData;
 	ew::MeshData sphereMeshData;
 	ew::MeshData cubeMeshData;
-	ew::createPlaneXY(6.0f, 6.0f, 1, &planeMeshData);
+	ew::createPlaneXY(6.0f, 6.0f, 4, &planeMeshData);
 	ew::createCube(1.0f, &cubeMeshData);
 	ew::createSphere(2.0f, 32, &sphereMeshData);
 	ew::Mesh planeMesh = ew::Mesh(planeMeshData);
@@ -104,6 +104,8 @@ int main() {
 	Texture2D grainNormals("assets/NormalMaps/grainNormals.png", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D shallowRipplesX("assets/NormalMaps/sandShallowX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D steepRipplesX("assets/NormalMaps/sandSteepX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D shallowRipplesZ("assets/NormalMaps/sandShallowZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D steepRipplesZ("assets/NormalMaps/sandSteepZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	//Texture2D webTexture("assets/Textures/web.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 
 	//set active shader and set textures to units
@@ -118,7 +120,6 @@ int main() {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		rotationTime += deltaTime;
 
 		//input
 		processInput(window);
@@ -128,12 +129,11 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
 		ew::DrawMode drawMode = pointRender ? ew::DrawMode::POINTS : ew::DrawMode::TRIANGLES;
-		grainNormals.Texture2D::bind(0);
-		shallowRipplesX.Texture2D::bind(1);
-		steepRipplesX.Texture2D::bind(2);
 
 		//use shader
 		sandShader.Shader::use();
+
+		//update uniforms
 		sandShader.setVec3("uLightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 		sandShader.setVec3("uLightDirection", lightDirection);
 		sandShader.setVec3("uViewPos", cam.getPos());
@@ -149,12 +149,17 @@ int main() {
 		sandShader.setFloat("uRimStrength", rimStrength);
 		sandShader.setFloat("uRimPower", rimPower);
 		sandShader.setFloat("uSteepnessStrength", rippleStrength);
+		sandShader.setInt("uNormalMap", 0);
+		sandShader.setInt("uShallowX", 1);
+		sandShader.setInt("uSteepX", 2);
+		sandShader.setInt("uShallowZ", 3);
+		sandShader.setInt("uSteepZ", 4);
 
-		//update uniform
-		//time
-		float time = glfwGetTime();
-		int timeLoc = glGetUniformLocation(sandShader.mId, "uTime");
-		glUniform1f(timeLoc, time);
+		grainNormals.Texture2D::bind(0);
+		shallowRipplesX.Texture2D::bind(1);
+		steepRipplesX.Texture2D::bind(2);
+		shallowRipplesZ.Texture2D::bind(3);
+		steepRipplesZ.Texture2D::bind(4);
 
 		//camera view
 		glm::mat4 projection = glm::perspective(glm::radians(cam.mZoom), 800.0f / 600.0f, 0.1f, 1000.0f);
@@ -165,7 +170,7 @@ int main() {
 
 		//Draw plane
 		/*glm::mat4 planeTransform = glm::mat4(1);
-		planeTransform = glm::rotate(planeTransform, glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		planeTransform = glm::rotate(planeTransform, glm::radians(90.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
 		planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
 		sandShader.setMat4("model", planeTransform);
 		planeMesh.draw(drawMode);
