@@ -102,11 +102,12 @@ int main() {
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
 
 	Texture2D grainNormals("assets/NormalMaps/grainNormals.png", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
+	//Texture2D grainNormals("assets/NormalMaps/bricks.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
+
 	Texture2D shallowRipplesX("assets/NormalMaps/sandShallowX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D steepRipplesX("assets/NormalMaps/sandSteepX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D shallowRipplesZ("assets/NormalMaps/sandShallowZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D steepRipplesZ("assets/NormalMaps/sandSteepZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
-	//Texture2D webTexture("assets/Textures/web.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 
 	//set active shader and set textures to units
 	sandShader.Shader::use();

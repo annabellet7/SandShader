@@ -36,7 +36,7 @@ void main()
     vec3 bitangent = normalize(cross(Normal, tangent));
 
     mat3 TBN = transpose(mat3(tangent, bitangent, Normal));
-    LightDirection = TBN * uLightDirection;
+    LightDirection = TBN * normalize(uLightDirection);
     ViewPos = TBN * uViewPos;
     FragPos = TBN * FragPos;
 
