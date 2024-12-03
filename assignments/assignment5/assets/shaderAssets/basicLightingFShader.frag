@@ -45,60 +45,43 @@ void main()
 	vec3 grain = normalize(texture(uNormalMap, TexCoord * uGrainSize).rgb * 2.0 - 1.0); 
 	vec3 norm = grain;
 
-//	//Ripple Norms
-//	vec3 shallowX = normalize(texture(uShallowX, TexCoord).rgb * 2.0 - 1.0);
-//	vec3 steepX = normalize(texture(uSteepX, TexCoord).rgb * 2.0 - 1.0);
-//	float steepnessX = dot(Up, Normal);
-//	steepnessX = pow(steepnessX, 2.0);
-//	vec3 rippleX = normalize(mix(shallowX, steepX, steepnessX));
-//
-//	vec3 shallowZ = normalize(texture(uShallowZ, TexCoord).rgb * 2.0 - 1.0);
-//	vec3 steepZ = normalize(texture(uSteepZ, TexCoord).rgb * 2.0 - 1.0);
-//	float steepnessZ = dot(Z, Normal);
-//	steepnessZ = pow(steepnessZ, 2.0);
-//	vec3 rippleZ = normalize(mix(shallowZ, steepZ, steepnessZ));
-//
-//	vec3 ripple = normalize(mix(rippleX, rippleZ, 0.5));
-//
-//	//rotating ripples over grain normal offset
-//	float phi = atan(grain.z, grain.x);
-//	float theta = atan(grain.x, grain.y);
+	//Ripple Norms
+	vec3 shallowX = normalize(texture(uShallowX, TexCoord).rgb * 2.0 - 1.0);
+	vec3 steepX = normalize(texture(uSteepX, TexCoord).rgb * 2.0 - 1.0);
+	float steepnessX = dot(Up, Normal);
+	//steepnessX = pow(steepnessX, 2.0);
+	vec3 rippleX = normalize(mix(shallowX, steepX, steepnessX));
 
-//	mat3 rotateZ= mat3(1);
-//	rotateZ[0][0] = cos(phi);
-//	rotateZ[1][0] = -sin(phi);
-//	rotateZ[0][1] = sin(phi);
-//	rotateZ[1][1] = cos(phi);
-//
-//	mat3 rotateY = mat3(1);
-//	rotateY[0][0] = cos(theta);
-//	rotateY[2][0] = sin(theta);
-//	rotateY[0][2] = -sin(theta);
-//	rotateY[2][2] = cos(theta);
-//
-//	ripple = ripple * -rotateZ;
-//	ripple = ripple * rotateY;
-//	ripple = ripple * rotateZ;
-//	
-//	//rotating grain over ripple normal offset
-//	phi = atan(ripple.z, ripple.x);
-//	theta = atan(ripple.x, ripple.y);
+	vec3 shallowZ = normalize(texture(uShallowZ, TexCoord).rgb * 2.0 - 1.0);
+	vec3 steepZ = normalize(texture(uSteepZ, TexCoord).rgb * 2.0 - 1.0);
+	float steepnessZ = dot(Z, Normal);
+	//steepnessZ = pow(steepnessZ, 1.0);
+	vec3 rippleZ = normalize(mix(shallowZ, steepZ, steepnessZ));
 
-//	rotateZ[0][0] = cos(phi);
-//	rotateZ[1][0] = -sin(phi);
-//	rotateZ[0][1] = sin(phi);
-//	rotateZ[1][1] = cos(phi);
+	vec3 ripple = normalize(mix(rippleX, rippleZ, 0.5));
+
+	//rotating grain over ripple normal offset
+	float phi = atan(ripple.z, ripple.x);
+	float theta = atan(ripple.x, ripple.y);
+
+	mat3 rotateZ = mat3(1);
+	rotateZ[0][0] = cos(theta);
+	rotateZ[1][0] = -sin(theta);
+	rotateZ[0][1] = sin(theta);
+	rotateZ[1][1] = cos(theta);
+
+	mat3 rotateY = mat3(1);
+	rotateY[0][0] = cos(phi);
+	rotateY[2][0] = sin(phi);
+	rotateY[0][2] = -sin(phi);
+	rotateY[2][2] = cos(phi);
 //
-//	rotateY[0][0] = cos(theta);
-//	rotateY[2][0] = sin(theta);
-//	rotateY[0][2] = -sin(theta);
-//	rotateY[2][2] = cos(theta);
-//
-//	grain = grain * -rotateZ;
-//	grain = grain * rotateY;
-//	grain = grain * rotateZ;
-//
-//	vec3 norm = grain;
+	norm = norm * -rotateY;
+	norm = norm * rotateZ;
+	norm = norm * rotateY;
+	
+
+	norm = normalize(norm);
 
 	vec3 viewDir =  normalize(ViewPos - FragPos);
 	vec3 lightDir = normalize(-LightDirection);
@@ -114,10 +97,10 @@ void main()
 
 	//"ocean" specular (Blinn-Phong reflectance)
 	vec3 halfwayDir = normalize(lightDir + viewDir);
-	float spec = pow(max(dot(norm, halfwayDir), 0.0), uOceanShininess);
+	float spec = pow(max(dot(grain, halfwayDir), 0.0), uOceanShininess);
 	vec3  oceanSpecular = uLightColor * spec * uOceanSpecularK;
 
-	spec = pow(max(dot(norm, viewDir), 0.0), uGrainShininess);
+	spec = pow(max(dot(grain, viewDir), 0.0), uGrainShininess);
 	vec3  grainSpecular = uLightColor * spec * uGrainSpecularK;
 
 	vec3 result = (ambient + diffuse + oceanSpecular + grainSpecular) * color;

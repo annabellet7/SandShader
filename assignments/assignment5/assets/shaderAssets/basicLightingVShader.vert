@@ -32,7 +32,7 @@ void main()
     mat3 normalMatrix = mat3(transpose(inverse(model)));
     vec3 tangent = normalize(normalMatrix * aTangent);
     Normal = normalMatrix * aNormal;
-    tangent = normalize(tangent - dot(tangent, Normal) * Normal); 
+    //tangent = normalize(tangent - dot(tangent, Normal) * Normal); 
     vec3 bitangent = normalize(cross(Normal, tangent));
 
     mat3 TBN = transpose(mat3(tangent, bitangent, Normal));
