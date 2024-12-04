@@ -44,6 +44,10 @@ float rimStrength = 0.2f;
 float rimPower = 10.0f;
 float rippleStrength = 5.0f;
 
+float x = 0.0;
+float y = 0.0;
+float z = 0.0;
+
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
@@ -170,8 +174,10 @@ int main() {
 		sandShader.setMat4("view", view);
 
 		//Draw plane
-		/*glm::mat4 planeTransform = glm::mat4(1);
-		planeTransform = glm::rotate(planeTransform, glm::radians(00.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
+		glm::mat4 planeTransform = glm::mat4(1);
+		planeTransform = glm::rotate(planeTransform, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+		planeTransform = glm::rotate(planeTransform, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+		planeTransform = glm::rotate(planeTransform, glm::radians(z), glm::vec3(0.0f, 1.0f, 1.0f));
 		planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
 		sandShader.setMat4("model", planeTransform);
 		planeMesh.draw(drawMode);
@@ -186,17 +192,17 @@ int main() {
 		tangentShader.setMat4("projection", projection);
 		tangentShader.setMat4("view", view);
 		tangentShader.setMat4("model", planeTransform);
-		planeMesh.draw(drawMode);*/
+		planeMesh.draw(drawMode);
 
 		////draw
 		{
 			////Draw sphere
-			glm::mat4 transform = glm::mat4(1);
-			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			/*glm::mat4 transform = glm::mat4(1);
+			planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 			transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
 			transform = glm::scale(transform, glm::vec3(2.0f));
 			sandShader.setMat4("model", transform);
-			sphereMesh.draw(drawMode);
+			sphereMesh.draw(drawMode);*/
 
 			//normals
 			/*normalShader.Shader::use();
@@ -241,6 +247,9 @@ int main() {
 		ImGui::SliderFloat("Ocean Shininess", &oceanShininess, 2, 1024);
 		ImGui::SliderFloat("Grain Specular K", &grainSpecularK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Grain Shininess", &grainShininess, 2, 1024);
+		ImGui::SliderFloat("X", &x, -90.0f, 90.0f);
+		ImGui::SliderFloat("Y", &y, -90.0f, 90.0f);
+		ImGui::SliderFloat("Z", &z, -90.0f, 90.0f);
 		ImGui::End();
 
 		//render imgui

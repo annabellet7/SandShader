@@ -48,15 +48,20 @@ void main()
 	//Ripple Norms
 	vec3 shallowX = normalize(texture(uShallowX, TexCoord).rgb * 2.0 - 1.0);
 	vec3 steepX = normalize(texture(uSteepX, TexCoord).rgb * 2.0 - 1.0);
-	float steepnessX = dot(vec3(0, 1, 0), Normal);
-	vec3 rippleX = normalize(mix(steepX, shallowX, steepnessX));
+	float yAlightment = dot(vec3(0, 1, 0), Normal);
+	yAlightment = pow(yAlightment, 2.0);
+	vec3 rippleX = normalize(mix(steepX, shallowX, yAlightment));
 
 	vec3 shallowZ = normalize(texture(uShallowZ, TexCoord).rgb * 2.0 - 1.0);
 	vec3 steepZ = normalize(texture(uSteepZ, TexCoord).rgb * 2.0 - 1.0);
-	float steepnessZ = dot(vec3(0, 0, 1), Normal);
-	vec3 rippleZ = normalize(mix(shallowZ, steepZ, steepnessZ));
+	float zAlignment = dot(vec3(0, 0, 1), Normal);
+	zAlignment = pow(zAlignment, 2.0);
+	vec3 rippleZ = normalize(mix(shallowZ, steepZ, zAlignment));
 
-	vec3 ripple = normalize(mix(rippleX, rippleZ, 0.5));
+	float xAlignment = abs(dot(vec2(1, 0), Normal.xz)); 
+	zAlignment = dot(vec2(0, 1), Normal.xz);
+	//xAlignment = pow(xAlignment, 2.0);
+	vec3 ripple = normalize(mix(rippleZ, rippleX, xAlignment));
 
 	//combine normal maps
 	mat3 basis = mat3
@@ -86,5 +91,5 @@ void main()
 	vec3  grainSpecular = uLightColor * spec * uGrainSpecularK;
 
 	vec3 result = (ambient + diffuse + oceanSpecular + grainSpecular) * color;
-	FragColor = vec4(result, 1.0);
+	FragColor = vec4(ripple, 1.0);
 }
