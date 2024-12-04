@@ -39,7 +39,7 @@ float oceanShininess = 32;
 float grainSpecularK = 0.8f;
 float grainShininess = 850;
 float sandStrength = 0.4f;
-float grainSize = 5.0f;
+float grainSize = 2.0f;
 float rimStrength = 0.2f;
 float rimPower = 10.0f;
 float rippleStrength = 5.0f;
@@ -102,11 +102,11 @@ int main() {
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
 
 	
-	Texture2D grainNormals("assets/NormalMaps/grainNormals.png", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGBA);
 
-	Texture2D shallowRipplesX("assets/NormalMaps/sandShallowX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
-	Texture2D steepRipplesX("assets/NormalMaps/sandSteepX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
-	Texture2D shallowRipplesZ("assets/NormalMaps/sandShallowZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D grainNormals("assets/NormalMaps/grain.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D shallowRipplesX("assets/NormalMaps/sandShallowX2.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D steepRipplesX("assets/NormalMaps/sandSteepX2.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D shallowRipplesZ("assets/NormalMaps/sandShallowZ2.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D steepRipplesZ("assets/NormalMaps/sandSteepZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 
 	//set active shader and set textures to units
@@ -171,7 +171,7 @@ int main() {
 
 		//Draw plane
 		/*glm::mat4 planeTransform = glm::mat4(1);
-		planeTransform = glm::rotate(planeTransform, glm::radians(90.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
+		planeTransform = glm::rotate(planeTransform, glm::radians(00.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
 		planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
 		sandShader.setMat4("model", planeTransform);
 		planeMesh.draw(drawMode);

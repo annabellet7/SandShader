@@ -48,40 +48,22 @@ void main()
 	//Ripple Norms
 	vec3 shallowX = normalize(texture(uShallowX, TexCoord).rgb * 2.0 - 1.0);
 	vec3 steepX = normalize(texture(uSteepX, TexCoord).rgb * 2.0 - 1.0);
-	float steepnessX = dot(Up, Normal);
-	//steepnessX = pow(steepnessX, 2.0);
-	vec3 rippleX = normalize(mix(shallowX, steepX, steepnessX));
+	float steepnessX = dot(vec3(0, 1, 0), Normal);
+	vec3 rippleX = normalize(mix(steepX, shallowX, steepnessX));
 
 	vec3 shallowZ = normalize(texture(uShallowZ, TexCoord).rgb * 2.0 - 1.0);
 	vec3 steepZ = normalize(texture(uSteepZ, TexCoord).rgb * 2.0 - 1.0);
-	float steepnessZ = dot(Z, Normal);
-	//steepnessZ = pow(steepnessZ, 1.0);
+	float steepnessZ = dot(vec3(0, 0, 1), Normal);
 	vec3 rippleZ = normalize(mix(shallowZ, steepZ, steepnessZ));
 
 	vec3 ripple = normalize(mix(rippleX, rippleZ, 0.5));
 
-	//rotating grain over ripple normal offset
-	float phi = atan(ripple.z, ripple.x);
-	float theta = atan(ripple.x, ripple.y);
-
-	mat3 rotateZ = mat3(1);
-	rotateZ[0][0] = cos(theta);
-	rotateZ[1][0] = -sin(theta);
-	rotateZ[0][1] = sin(theta);
-	rotateZ[1][1] = cos(theta);
-
-	mat3 rotateY = mat3(1);
-	rotateY[0][0] = cos(phi);
-	rotateY[2][0] = sin(phi);
-	rotateY[0][2] = -sin(phi);
-	rotateY[2][2] = cos(phi);
-//
-	norm = norm * -rotateY;
-	norm = norm * rotateZ;
-	norm = norm * rotateY;
-	
-
-	norm = normalize(norm);
+	//combine normal maps
+	mat3 basis = mat3
+	(ripple.z, ripple.y, -ripple.x,
+	ripple.x, ripple.z, -ripple.y,
+	ripple.x, ripple.y, ripple.z);
+	norm = normalize(grain.x * basis[0] + grain.y * basis[1] + grain.z * basis[2]);
 
 	vec3 viewDir =  normalize(ViewPos - FragPos);
 	vec3 lightDir = normalize(-LightDirection);
@@ -94,13 +76,13 @@ void main()
 	vec3 color = mix(ColorShade, ColorSun, diff) + rim; //interpolates between shade and sun as zero and one values
 	vec3 diffuse = diff * uLightColor * uDiffuseK * color;
 
-
 	//"ocean" specular (Blinn-Phong reflectance)
 	vec3 halfwayDir = normalize(lightDir + viewDir);
 	float spec = pow(max(dot(grain, halfwayDir), 0.0), uOceanShininess);
 	vec3  oceanSpecular = uLightColor * spec * uOceanSpecularK;
 
-	spec = pow(max(dot(grain, viewDir), 0.0), uGrainShininess);
+	//grain specular, shimmers when the camera moves
+	spec = pow(max(dot(norm, viewDir), 0.0), uGrainShininess);
 	vec3  grainSpecular = uLightColor * spec * uGrainSpecularK;
 
 	vec3 result = (ambient + diffuse + oceanSpecular + grainSpecular) * color;
