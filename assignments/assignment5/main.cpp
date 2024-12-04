@@ -197,12 +197,12 @@ int main() {
 		////draw
 		{
 			////Draw sphere
-			/*glm::mat4 transform = glm::mat4(1);
-			planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
-			transform = glm::scale(transform, glm::vec3(2.0f));
-			sandShader.setMat4("model", transform);
-			sphereMesh.draw(drawMode);*/
+			//glm::mat4 transform = glm::mat4(1);
+			////planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			//transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
+			//transform = glm::scale(transform, glm::vec3(2.0f));
+			//sandShader.setMat4("model", transform);
+			//sphereMesh.draw(drawMode);
 
 			//normals
 			/*normalShader.Shader::use();

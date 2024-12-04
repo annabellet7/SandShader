@@ -59,8 +59,6 @@ void main()
 	vec3 rippleZ = normalize(mix(shallowZ, steepZ, zAlignment));
 
 	float xAlignment = abs(dot(vec2(1, 0), Normal.xz)); 
-	zAlignment = dot(vec2(0, 1), Normal.xz);
-	//xAlignment = pow(xAlignment, 2.0);
 	vec3 ripple = normalize(mix(rippleZ, rippleX, xAlignment));
 
 	//combine normal maps
@@ -91,5 +89,5 @@ void main()
 	vec3  grainSpecular = uLightColor * spec * uGrainSpecularK;
 
 	vec3 result = (ambient + diffuse + oceanSpecular + grainSpecular) * color;
-	FragColor = vec4(ripple, 1.0);
+	FragColor = vec4(result, 1.0);
 }
