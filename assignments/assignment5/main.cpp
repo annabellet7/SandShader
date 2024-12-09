@@ -31,7 +31,6 @@ const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720; 
 
 glm::vec3 lightDirection(-0.3f, -1.0f, 2.0f);
-glm::vec3 lightColor(0.898f, 0.863f, 0.757f);
 glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
 float ambientK = 0.6f;
 float diffuseK = 0.2f;
@@ -45,9 +44,30 @@ float rimStrength = 0.2f;
 float rimPower = 10.0f;
 float rippleStrength = 5.0f;
 
+glm::vec3 dayLightColor(0.898f, 0.863f, 0.757f);
+glm::vec3 dayLitColor = glm::vec3(0.925, 0.796, 0.718);
+glm::vec3 dayShadeColor = glm::vec3(0.851, 0.631, 0.565);
+glm::vec3 daySpecularColor = glm::vec3(0.990, 0.721, 0.451);
+glm::vec3 nightLightColor(0.858f, 0.936f, 0.925f);
+glm::vec3 nightLitColor = glm::vec3(0.0, 0.098, 0.094);
+glm::vec3 nightShadeColor = glm::vec3(0.0, 0.075, 0.067);
+glm::vec3 nightSpecularColor = glm::vec3(0.058, 0.917, 0.891);
+
+glm::vec3 lightColor(0.898f, 0.863f, 0.757f);
+glm::vec3 litColor = glm::vec3(0.925, 0.796, 0.718);
+glm::vec3 shadeColor = glm::vec3(0.851, 0.631, 0.565);
+glm::vec3 specularColor = glm::vec3(0.990, 0.721, 0.451);
+
+
+
 float x = 0.0;
 float y = 0.0;
 float z = 0.0;
+
+bool day = false;
+bool night = false;
+bool tangent = false;
+
 
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
@@ -68,7 +88,7 @@ int main() {
 		printf("GLFW failed to init!");
 		return 1;
 	}
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello Triangle", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Sand", NULL, NULL);
 	if (window == NULL) {
 		printf("GLFW failed to create window");
 		return 1;
@@ -148,18 +168,36 @@ int main() {
 		//use shader
 		sandShader.Shader::use();
 
+		//day or night
+		if (day)
+		{
+			lightColor = dayLightColor;
+			litColor = dayLitColor;
+			shadeColor = dayShadeColor;
+			specularColor = daySpecularColor;
+		}
+		else if (night)
+		{
+			lightColor = nightLightColor;
+			litColor = nightLitColor;
+			shadeColor = nightShadeColor;
+			specularColor = nightSpecularColor;
+		}
+
 		//update uniforms
 		sandShader.setVec3("uLightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 		sandShader.setVec3("uLightDirection", lightDirection);
 		sandShader.setVec3("uViewPos", cam.getPos());
 		sandShader.setVec3("uLightColor", lightColor);
+		sandShader.setVec3("uColorSun", litColor);
+		sandShader.setVec3("uColorShade", shadeColor);
+		sandShader.setVec3("uSpecColor", specularColor);
 		sandShader.setFloat("uAmbientK", ambientK);
 		sandShader.setFloat("uDiffuseK", diffuseK);
 		sandShader.setFloat("uOceanSpecularK", oceanSpecularK);
 		sandShader.setFloat ("uOceanShininess", oceanShininess);
 		sandShader.setFloat("uGrainSpecularK", grainSpecularK);
 		sandShader.setFloat("uGrainShininess", grainShininess);
-		sandShader.setFloat("uSandStrength", sandStrength);
 		sandShader.setFloat("uGrainSize", grainSize);
 		sandShader.setFloat("uRimStrength", rimStrength);
 		sandShader.setFloat("uRimPower", rimPower);
@@ -198,40 +236,47 @@ int main() {
 				terrainMesh2.draw(drawMode);
 			//}
 
-			normalShader.Shader::use();
-			normalShader.setMat4("projection", projection);
-			normalShader.setMat4("view", view);
-			normalShader.setMat4("model", planeTransform);
-			terrainMesh2.draw(drawMode);
-			
-			tangentShader.Shader::use();
-			tangentShader.setMat4("projection", projection);
-			tangentShader.setMat4("view", view);
-			tangentShader.setMat4("model", planeTransform);
-			terrainMesh2.draw(drawMode);
+			//tangent space
+				if (tangent)
+				{
+					normalShader.Shader::use();
+					normalShader.setMat4("projection", projection);
+					normalShader.setMat4("view", view);
+					normalShader.setMat4("model", planeTransform);
+					terrainMesh2.draw(drawMode);
+					tangentShader.Shader::use();
+					tangentShader.setMat4("projection", projection);
+					tangentShader.setMat4("view", view);
+					tangentShader.setMat4("model", planeTransform);
+					terrainMesh2.draw(drawMode);
+				}
 		//}
 		////draw
 		{
 			////Draw sphere
-			//glm::mat4 transform = glm::mat4(1);
-			////planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			//transform = glm::translate(transform, glm::vec3(0.0, 0.0, 0.0));
-			//transform = glm::scale(transform, glm::vec3(2.0f));
-			//sandShader.setMat4("model", transform);
-			//sphereMesh.draw(drawMode);
+			
 
-			//normals
-			/*normalShader.Shader::use();
-			normalShader.setMat4("projection", projection); 
-			normalShader.setMat4("view", view);  
-			normalShader.setMat4("model", transform); 
+			sandShader.Shader::use();
+			glm::mat4 transform = glm::mat4(1);
+			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+			transform = glm::translate(transform, glm::vec3(5.0, 0.0, 0.0));
+			transform = glm::scale(transform, glm::vec3(1.0f));
+			sandShader.setMat4("model", transform);
 			sphereMesh.draw(drawMode);
+			if (tangent)
+			{
+				normalShader.Shader::use();
+				normalShader.setMat4("projection", projection);
+				normalShader.setMat4("view", view);
+				normalShader.setMat4("model", transform);
+				sphereMesh.draw(drawMode);
 
-			tangentShader.Shader::use();
-			tangentShader.setMat4("projection", projection);
-			tangentShader.setMat4("view", view);
-			tangentShader.setMat4("model", transform);
-			sphereMesh.draw(drawMode);*/
+				tangentShader.Shader::use();
+				tangentShader.setMat4("projection", projection);
+				tangentShader.setMat4("view", view);
+				tangentShader.setMat4("model", transform);
+				sphereMesh.draw(drawMode);
+			}
 		}
 
 
@@ -257,6 +302,7 @@ int main() {
 		ImGui::Begin("Settings");
 		ImGui::DragFloat3("Light Position", &lightDirection.x, 0.1f);
 		ImGui::ColorEdit3("Light Color", &lightColor.r);
+		ImGui::ColorEdit3("Spec Color", &specularColor.r);
 		ImGui::SliderFloat("Ambient K", &ambientK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Diffuse K", &diffuseK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Ocean Specular K", &oceanSpecularK, 0.0f, 1.0f);
@@ -266,6 +312,9 @@ int main() {
 		ImGui::SliderFloat("X", &x, -90.0f, 90.0f);
 		ImGui::SliderFloat("Y", &y, -90.0f, 90.0f);
 		ImGui::SliderFloat("Z", &z, -90.0f, 90.0f);
+		ImGui::Checkbox("Day", &day);
+		ImGui::Checkbox("Night", &night);
+		ImGui::Checkbox("Tangent Space", &tangent);
 		ImGui::End();
 
 		//render imgui
