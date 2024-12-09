@@ -18,6 +18,7 @@
 #include "Shader/Shader.h"
 #include "Texture/Texture.h"
 #include "Camera/Camera.h"
+#include "Terrain/terrain.h"
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -54,6 +55,12 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 bool wireFrame = false;
 bool pointRender = false;
+
+//terrain config
+int width = 36;
+int height = 36;
+int complexity = 72;
+
 
 int main() {
 	printf("Initializing...\n");
@@ -95,13 +102,16 @@ int main() {
 
 	//-----------------------------------------------------------------------------------------------
 
-	ew::MeshData planeMeshData;
+	ew::MeshData terrainMeshData1;
+	ew::MeshData terrainMeshData2;
 	ew::MeshData sphereMeshData;
 	ew::MeshData cubeMeshData;
-	ew::createPlaneXY(6.0f, 6.0f, 4, &planeMeshData);
-	ew::createCube(1.0f, &cubeMeshData);
+	ew::createTerrain(width, height, complexity, &terrainMeshData1, 0);
+	ew::createTerrain(width, height, complexity, &terrainMeshData2, 1);
+	ew::createCube(6.0f, &cubeMeshData);
 	ew::createSphere(2.0f, 32, &sphereMeshData);
-	ew::Mesh planeMesh = ew::Mesh(planeMeshData);
+	ew::Mesh terrainMesh1 = ew::Mesh(terrainMeshData1);
+	ew::Mesh terrainMesh2 = ew::Mesh(terrainMeshData2);
 	ew::Mesh cubeMesh = ew::Mesh(cubeMeshData);
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
 
@@ -173,27 +183,33 @@ int main() {
 		glm::mat4 view = cam.getViewMatrix();
 		sandShader.setMat4("view", view);
 
-		//Draw plane
-		glm::mat4 planeTransform = glm::mat4(1);
-		planeTransform = glm::rotate(planeTransform, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
-		planeTransform = glm::rotate(planeTransform, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
-		planeTransform = glm::rotate(planeTransform, glm::radians(z), glm::vec3(0.0f, 1.0f, 1.0f));
-		planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
-		sandShader.setMat4("model", planeTransform);
-		planeMesh.draw(drawMode);
-		
-		normalShader.Shader::use();
-		normalShader.setMat4("projection", projection); 
-		normalShader.setMat4("view", view);  
-		normalShader.setMat4("model", planeTransform);
-		planeMesh.draw(drawMode);
+		//Draw terrain
+		//for (int i = 0; i < 1; i++) {
+			glm::mat4 planeTransform = glm::mat4(1);
+			planeTransform = glm::rotate(planeTransform, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+			planeTransform = glm::rotate(planeTransform, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+			planeTransform = glm::rotate(planeTransform, glm::radians(z), glm::vec3(0.0f, 1.0f, 1.0f));
+			//for(int j = 0; j < 1; j++) {
+				planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0,0));
+				sandShader.setMat4("model", planeTransform);
+				terrainMesh1.draw(drawMode);
+				planeTransform = glm::translate(planeTransform, glm::vec3(complexity/2 - complexity/10, 0.0,0));
+				sandShader.setMat4("model", planeTransform);
+				terrainMesh2.draw(drawMode);
+			//}
 
-		tangentShader.Shader::use();
-		tangentShader.setMat4("projection", projection);
-		tangentShader.setMat4("view", view);
-		tangentShader.setMat4("model", planeTransform);
-		planeMesh.draw(drawMode);
-
+			normalShader.Shader::use();
+			normalShader.setMat4("projection", projection);
+			normalShader.setMat4("view", view);
+			normalShader.setMat4("model", planeTransform);
+			terrainMesh2.draw(drawMode);
+			
+			tangentShader.Shader::use();
+			tangentShader.setMat4("projection", projection);
+			tangentShader.setMat4("view", view);
+			tangentShader.setMat4("model", planeTransform);
+			terrainMesh2.draw(drawMode);
+		//}
 		////draw
 		{
 			////Draw sphere
