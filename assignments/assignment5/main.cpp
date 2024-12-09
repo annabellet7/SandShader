@@ -78,7 +78,7 @@ int main() {
 		printf("GLFW failed to init!");
 		return 1;
 	}
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello Triangle", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Sand", NULL, NULL);
 	if (window == NULL) {
 		printf("GLFW failed to create window");
 		return 1;
@@ -185,7 +185,6 @@ int main() {
 		sandShader.setFloat ("uOceanShininess", oceanShininess);
 		sandShader.setFloat("uGrainSpecularK", grainSpecularK);
 		sandShader.setFloat("uGrainShininess", grainShininess);
-		sandShader.setFloat("uSandStrength", sandStrength);
 		sandShader.setFloat("uGrainSize", grainSize);
 		sandShader.setFloat("uRimStrength", rimStrength);
 		sandShader.setFloat("uRimPower", rimPower);

@@ -30,10 +30,8 @@ uniform float uGrainSpecularK;
 uniform float uGrainShininess;
 uniform float uGrainSize;
 
-uniform float uSandStrength;
 uniform float uRimStrength;
 uniform float uRimPower;
-uniform float uSteepnessStrength;
 
 void main()
 { 
