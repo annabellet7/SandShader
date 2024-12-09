@@ -1,3 +1,6 @@
+/*
+	Author: William Bishop
+*/
 #include "terrain.h"
 #include <stdlib.h>
 #include <functional>

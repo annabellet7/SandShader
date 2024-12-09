@@ -1,3 +1,6 @@
+/*
+	Author: Annabelle Thompson
+*/
 #ifndef TEXTURE_H
 #define TEXTURE_H
 

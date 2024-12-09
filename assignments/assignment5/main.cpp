@@ -1,3 +1,7 @@
+/*
+	Author: Annabelle Thompson
+*/
+
 #include <stdio.h>
 #include <math.h>
 
@@ -31,7 +35,6 @@ const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720; 
 
 glm::vec3 lightDirection(-0.3f, -1.0f, 2.0f);
-glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
 float ambientK = 0.6f;
 float diffuseK = 0.2f;
 float oceanSpecularK = 0.8f;
@@ -39,7 +42,7 @@ float oceanShininess = 32;
 float grainSpecularK = 0.8f;
 float grainShininess = 850;
 float sandStrength = 0.4f;
-float grainSize = 2.0f;
+float grainSize = 5.0f;
 float rimStrength = 0.2f;
 float rimPower = 10.0f;
 float rippleStrength = 5.0f;
@@ -57,8 +60,6 @@ glm::vec3 lightColor(0.898f, 0.863f, 0.757f);
 glm::vec3 litColor = glm::vec3(0.925, 0.796, 0.718);
 glm::vec3 shadeColor = glm::vec3(0.851, 0.631, 0.565);
 glm::vec3 specularColor = glm::vec3(0.990, 0.721, 0.451);
-
-
 
 float x = 0.0;
 float y = 0.0;
@@ -124,29 +125,25 @@ int main() {
 
 	ew::MeshData terrainMeshData1;
 	ew::MeshData terrainMeshData2;
+	ew::MeshData planeMeshData;
 	ew::MeshData sphereMeshData;
 	ew::MeshData cubeMeshData;
 	ew::createTerrain(width, height, complexity, &terrainMeshData1, 0);
 	ew::createTerrain(width, height, complexity, &terrainMeshData2, 1);
+	ew::createPlaneXY(6.0f, 6.0f, 4.0f, &planeMeshData);
 	ew::createCube(6.0f, &cubeMeshData);
 	ew::createSphere(2.0f, 32, &sphereMeshData);
 	ew::Mesh terrainMesh1 = ew::Mesh(terrainMeshData1);
 	ew::Mesh terrainMesh2 = ew::Mesh(terrainMeshData2);
+	ew::Mesh planeMesh = ew::Mesh(planeMeshData);
 	ew::Mesh cubeMesh = ew::Mesh(cubeMeshData);
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
-
-	
 
 	Texture2D grainNormals("assets/NormalMaps/grain.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D shallowRipplesX("assets/NormalMaps/sandShallowX2.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D steepRipplesX("assets/NormalMaps/sandSteepX2.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D shallowRipplesZ("assets/NormalMaps/sandShallowZ2.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D steepRipplesZ("assets/NormalMaps/sandSteepZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
-
-	//set active shader and set textures to units
-	sandShader.Shader::use();
-	glUniform1i(glGetUniformLocation(sandShader.getProgram(), "normalMap"), 0);
-	glUniform1i(glGetUniformLocation(sandShader.getProgram(), "texture1"), 1);
 
 	float rotationTime = 0;
 	//Render loop
@@ -221,64 +218,73 @@ int main() {
 		glm::mat4 view = cam.getViewMatrix();
 		sandShader.setMat4("view", view);
 
+
+		/*
+			Author: Willam Bishop
+		*/
 		//Draw terrain
-		//for (int i = 0; i < 1; i++) {
-			glm::mat4 planeTransform = glm::mat4(1);
-			planeTransform = glm::rotate(planeTransform, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
-			planeTransform = glm::rotate(planeTransform, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
-			planeTransform = glm::rotate(planeTransform, glm::radians(z), glm::vec3(0.0f, 1.0f, 1.0f));
-			//for(int j = 0; j < 1; j++) {
-				planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0,0));
-				sandShader.setMat4("model", planeTransform);
-				terrainMesh1.draw(drawMode);
-				planeTransform = glm::translate(planeTransform, glm::vec3(complexity/2 - complexity/10, 0.0,0));
-				sandShader.setMat4("model", planeTransform);
-				terrainMesh2.draw(drawMode);
-			//}
+		glm::mat4 planeTransform = glm::mat4(1);
+		planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0,0));
+		sandShader.setMat4("model", planeTransform);
+		terrainMesh1.draw(drawMode);
+		planeTransform = glm::translate(planeTransform, glm::vec3(complexity/2 - complexity/10, 0.0,0));
+		sandShader.setMat4("model", planeTransform);
+		terrainMesh2.draw(drawMode);
 
-			//tangent space
-				if (tangent)
-				{
-					normalShader.Shader::use();
-					normalShader.setMat4("projection", projection);
-					normalShader.setMat4("view", view);
-					normalShader.setMat4("model", planeTransform);
-					terrainMesh2.draw(drawMode);
-					tangentShader.Shader::use();
-					tangentShader.setMat4("projection", projection);
-					tangentShader.setMat4("view", view);
-					tangentShader.setMat4("model", planeTransform);
-					terrainMesh2.draw(drawMode);
-				}
-		//}
-		////draw
+		//tangent space
+		if (tangent)
 		{
-			////Draw sphere
-			
-
-			sandShader.Shader::use();
-			glm::mat4 transform = glm::mat4(1);
-			//planeTransform = glm::rotate(planeTransform, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			transform = glm::translate(transform, glm::vec3(5.0, 0.0, 0.0));
-			transform = glm::scale(transform, glm::vec3(1.0f));
-			sandShader.setMat4("model", transform);
-			sphereMesh.draw(drawMode);
-			if (tangent)
-			{
-				normalShader.Shader::use();
-				normalShader.setMat4("projection", projection);
-				normalShader.setMat4("view", view);
-				normalShader.setMat4("model", transform);
-				sphereMesh.draw(drawMode);
-
-				tangentShader.Shader::use();
-				tangentShader.setMat4("projection", projection);
-				tangentShader.setMat4("view", view);
-				tangentShader.setMat4("model", transform);
-				sphereMesh.draw(drawMode);
-			}
+			planeTransform = glm::mat4(1);
+			normalShader.Shader::use();
+			normalShader.setMat4("projection", projection);
+			normalShader.setMat4("view", view);
+			planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0, 0));
+			sandShader.setMat4("model", planeTransform);
+			terrainMesh1.draw(drawMode);
+			planeTransform = glm::translate(planeTransform, glm::vec3(complexity / 2 - complexity / 10, 0.0, 0));
+			sandShader.setMat4("model", planeTransform);
+			terrainMesh2.draw(drawMode);
+				
+			planeTransform = glm::mat4(1);
+			tangentShader.Shader::use();
+			tangentShader.setMat4("projection", projection);
+			tangentShader.setMat4("view", view);
+			planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0, 0));
+			sandShader.setMat4("model", planeTransform);
+			terrainMesh1.draw(drawMode);
+			planeTransform = glm::translate(planeTransform, glm::vec3(complexity / 2 - complexity / 10, 0.0, 0));
+			sandShader.setMat4("model", planeTransform);
+			terrainMesh2.draw(drawMode);
 		}
+		/*
+			End Author: Willam Bishop
+		*/
+		
+		//draw plane
+		sandShader.Shader::use();
+		planeTransform = glm::mat4(1);
+		planeTransform = glm::rotate(planeTransform, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+		planeTransform = glm::rotate(planeTransform, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+		planeTransform = glm::rotate(planeTransform, glm::radians(z), glm::vec3(0.0f, 1.0f, 1.0f));
+		planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
+		sandShader.setMat4("model", planeTransform);
+		planeMesh.draw(drawMode);
 
+		if (tangent)
+		{
+			normalShader.Shader::use();
+			normalShader.setMat4("projection", projection);
+			normalShader.setMat4("view", view);
+			normalShader.setMat4("model", planeTransform);
+			planeMesh.draw(drawMode);
+
+			tangentShader.Shader::use();
+			tangentShader.setMat4("projection", projection);
+			tangentShader.setMat4("view", view);
+			tangentShader.setMat4("model", planeTransform);
+			planeMesh.draw(drawMode);
+		}
+	
 
 		//light cube
 		lampShader.Shader::use();
@@ -309,6 +315,7 @@ int main() {
 		ImGui::SliderFloat("Ocean Shininess", &oceanShininess, 2, 1024);
 		ImGui::SliderFloat("Grain Specular K", &grainSpecularK, 0.0f, 1.0f);
 		ImGui::SliderFloat("Grain Shininess", &grainShininess, 2, 1024);
+		ImGui::SliderFloat("Grain Size", &grainSize, 1.0f, 10.0f);
 		ImGui::SliderFloat("X", &x, -90.0f, 90.0f);
 		ImGui::SliderFloat("Y", &y, -90.0f, 90.0f);
 		ImGui::SliderFloat("Z", &z, -90.0f, 90.0f);

@@ -1,3 +1,6 @@
+/*
+	Author: William Bishop
+*/
 #ifndef  TERRAIN_H
 #define TERRAIN_H
 #pragma once

@@ -1,3 +1,6 @@
+/*
+    Author: Annabelle Thompson
+*/
 #include "Texture.h"
 
 Texture2D::Texture2D(const char* filePath, int filterModeMin, int FliterModMag, int wrapModeS, int wrapModeT, int alpha)
