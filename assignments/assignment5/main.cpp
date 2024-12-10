@@ -81,6 +81,7 @@ bool pointRender = false;
 int width = 36;
 int height = 36;
 int complexity = 72;
+const int size = 10;
 
 
 int main() {
@@ -123,18 +124,21 @@ int main() {
 
 	//-----------------------------------------------------------------------------------------------
 
-	ew::MeshData terrainMeshData1;
-	ew::MeshData terrainMeshData2;
+	ew::MeshData terrainMeshData;
 	ew::MeshData planeMeshData;
 	ew::MeshData sphereMeshData;
 	ew::MeshData cubeMeshData;
-	ew::createTerrain(width, height, complexity, &terrainMeshData1, 0);
-	ew::createTerrain(width, height, complexity, &terrainMeshData2, 1);
+	
 	ew::createPlaneXY(6.0f, 6.0f, 4.0f, &planeMeshData);
 	ew::createCube(6.0f, &cubeMeshData);
 	ew::createSphere(2.0f, 32, &sphereMeshData);
-	ew::Mesh terrainMesh1 = ew::Mesh(terrainMeshData1);
-	ew::Mesh terrainMesh2 = ew::Mesh(terrainMeshData2);
+	ew::Mesh terrainMesh[size*2];
+	for (int i = 0; i < size * 2; i++) {
+		int type = rand() % 5;
+		ew::createTerrain(width, height, complexity, &terrainMeshData, type);
+		terrainMesh[i] = ew::Mesh(terrainMeshData);
+	}
+
 	ew::Mesh planeMesh = ew::Mesh(planeMeshData);
 	ew::Mesh cubeMesh = ew::Mesh(cubeMeshData);
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
@@ -224,12 +228,20 @@ int main() {
 		*/
 		//Draw terrain
 		glm::mat4 planeTransform = glm::mat4(1);
-		planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0,0));
-		sandShader.setMat4("model", planeTransform);
-		terrainMesh1.draw(drawMode);
-		planeTransform = glm::translate(planeTransform, glm::vec3(complexity/2 - complexity/10, 0.0,0));
-		sandShader.setMat4("model", planeTransform);
-		terrainMesh2.draw(drawMode);
+		float spacing = (complexity / 2) - (complexity / 10);
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size;j++) {
+				planeTransform = glm::translate(planeTransform, glm::vec3((i * spacing), 0.0, (j * spacing)));
+				sandShader.setMat4("model", planeTransform);
+				terrainMesh[i+j].draw(drawMode);
+				planeTransform = glm::translate(planeTransform, glm::vec3(-(i * spacing), 0.0, -(j * spacing) ));
+			}
+		}
+		
+		
+		
+		
+		
 
 		//tangent space
 		if (tangent)
@@ -240,10 +252,7 @@ int main() {
 			normalShader.setMat4("view", view);
 			planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0, 0));
 			sandShader.setMat4("model", planeTransform);
-			terrainMesh1.draw(drawMode);
-			planeTransform = glm::translate(planeTransform, glm::vec3(complexity / 2 - complexity / 10, 0.0, 0));
-			sandShader.setMat4("model", planeTransform);
-			terrainMesh2.draw(drawMode);
+			terrainMesh[0].draw(drawMode);
 				
 			planeTransform = glm::mat4(1);
 			tangentShader.Shader::use();
@@ -251,10 +260,7 @@ int main() {
 			tangentShader.setMat4("view", view);
 			planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0, 0));
 			sandShader.setMat4("model", planeTransform);
-			terrainMesh1.draw(drawMode);
-			planeTransform = glm::translate(planeTransform, glm::vec3(complexity / 2 - complexity / 10, 0.0, 0));
-			sandShader.setMat4("model", planeTransform);
-			terrainMesh2.draw(drawMode);
+			terrainMesh[0].draw(drawMode);
 		}
 		/*
 			End Author: Willam Bishop

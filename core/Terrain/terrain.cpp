@@ -105,6 +105,18 @@ namespace ew {
 			return cosf(col/PI) + sinf(sqrt(col)/18) + floor(row/10)/8;
 
 		}
+		else if (type == 2) {
+			return sin(col/(3*PI/2));
+
+		}
+		else if (type == 3) {
+			return cos(sqrt(row)) + abs(sin(sqrt(row+col)));
+
+		}
+		else if (type == 4) {
+			return cos(sqrt(col)) + abs(sin(sqrt(row+col)));
+
+		}
 		return sin(col) + sin(row);
 		
 		
@@ -113,7 +125,7 @@ namespace ew {
 		float H=0;
 		float J = PI;
 		float x = col, y = row;
-		float lowerBound = (float)subDivisions / 10.0;
+		float lowerBound = (float)subDivisions / 5.0;
 		float uppperBound = (float)subDivisions - ((float)subDivisions / 10.0);
 		int G = 6;
 		H = makeDune(col, row, type);
@@ -140,7 +152,7 @@ namespace ew {
 					H = cos(x / ((3.0 * PI) / 2.0)) * Joe - abs(Joe);
 				}
 				else {
-					H = cos(x / ((3.0 * PI) / 2.0)) * Joe - abs(Joe);
+					H = cos(y / ((3.0 * PI) / 2.0)) * Joe - abs(Joe);
 				}
 			}
 		}
