@@ -234,33 +234,23 @@ int main() {
 				planeTransform = glm::translate(planeTransform, glm::vec3((i * spacing), 0.0, (j * spacing)));
 				sandShader.setMat4("model", planeTransform);
 				terrainMesh[i+j].draw(drawMode);
-				planeTransform = glm::translate(planeTransform, glm::vec3(-(i * spacing), 0.0, -(j * spacing) ));
-			}
-		}
-		
-		
-		
-		
-		
+				if (tangent)
+				{
+					normalShader.Shader::use();
+					normalShader.setMat4("projection", projection);
+					normalShader.setMat4("view", view);
+					normalShader.setMat4("model", planeTransform);
+					terrainMesh[i + j].draw(drawMode);
 
-		//tangent space
-		if (tangent)
-		{
-			planeTransform = glm::mat4(1);
-			normalShader.Shader::use();
-			normalShader.setMat4("projection", projection);
-			normalShader.setMat4("view", view);
-			planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0, 0));
-			sandShader.setMat4("model", planeTransform);
-			terrainMesh[0].draw(drawMode);
-				
-			planeTransform = glm::mat4(1);
-			tangentShader.Shader::use();
-			tangentShader.setMat4("projection", projection);
-			tangentShader.setMat4("view", view);
-			planeTransform = glm::translate(planeTransform, glm::vec3(0, 0.0, 0));
-			sandShader.setMat4("model", planeTransform);
-			terrainMesh[0].draw(drawMode);
+					tangentShader.Shader::use();
+					tangentShader.setMat4("projection", projection);
+					tangentShader.setMat4("view", view);
+					tangentShader.setMat4("model", planeTransform);
+					terrainMesh[i + j].draw(drawMode);
+				}
+				planeTransform = glm::translate(planeTransform, glm::vec3(-(i * spacing), 0.0, -(j * spacing) ));
+				sandShader.Shader::use();
+			}
 		}
 		/*
 			End Author: Willam Bishop
