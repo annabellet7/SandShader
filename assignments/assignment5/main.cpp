@@ -134,7 +134,7 @@ int main() {
 	ew::createSphere(2.0f, 32, &sphereMeshData);
 	ew::Mesh terrainMesh[size*2];
 	for (int i = 0; i < size * 2; i++) {
-		int type = rand() % 5;
+		int type = (rand() * i * size * complexity * rand() * width * height) % 5;
 		ew::createTerrain(width, height, complexity, &terrainMeshData, type);
 		terrainMesh[i] = ew::Mesh(terrainMeshData);
 	}
