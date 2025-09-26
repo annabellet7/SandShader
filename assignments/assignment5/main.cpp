@@ -73,15 +73,16 @@ bool tangent = false;
 void processInput(GLFWwindow* window);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
 bool wireFrame = false;
 bool pointRender = false;
 
 //terrain config
-int width = 36;
-int height = 36;
-int complexity = 72;
-const int size = 10;
+//int width = 36;
+//int height = 36;
+//int complexity = 72;
+//const int size = 10;
 
 
 int main() {
@@ -100,6 +101,8 @@ int main() {
 		printf("GLAD Failed to load GL headers");
 		return 1;
 	}
+	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+
 
 	glfwSetCursorPosCallback(window, mouseCallback);
 	glfwSetScrollCallback(window, scrollCallback);
@@ -132,21 +135,21 @@ int main() {
 	ew::createPlaneXY(6.0f, 6.0f, 4.0f, &planeMeshData);
 	ew::createCube(6.0f, &cubeMeshData);
 	ew::createSphere(2.0f, 32, &sphereMeshData);
-	ew::Mesh terrainMesh[size*2];
+	/*ew::Mesh terrainMesh[size*2];
 	for (int i = 0; i < size * 2; i++) {
 		int type = (rand() * i * size * complexity * rand() * width * height) % 5;
 		ew::createTerrain(width, height, complexity, &terrainMeshData, type);
 		terrainMesh[i] = ew::Mesh(terrainMeshData);
-	}
+	}*/
 
 	ew::Mesh planeMesh = ew::Mesh(planeMeshData);
 	ew::Mesh cubeMesh = ew::Mesh(cubeMeshData);
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
 
 	Texture2D grainNormals("assets/NormalMaps/grain.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
-	Texture2D shallowRipplesX("assets/NormalMaps/sandShallowX2.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
-	Texture2D steepRipplesX("assets/NormalMaps/sandSteepX2.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
-	Texture2D shallowRipplesZ("assets/NormalMaps/sandShallowZ2.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D shallowRipplesX("assets/NormalMaps/sandShallowX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D steepRipplesX("assets/NormalMaps/sandSteepX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D shallowRipplesZ("assets/NormalMaps/sandShallowZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D steepRipplesZ("assets/NormalMaps/sandSteepZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 
 	float rotationTime = 0;
@@ -216,18 +219,20 @@ int main() {
 		steepRipplesZ.Texture2D::bind(4);
 
 		//camera view
-		glm::mat4 projection = glm::perspective(glm::radians(cam.mZoom), 800.0f / 600.0f, 0.1f, 1000.0f);
+		int width, height;
+		glfwGetWindowSize(window, &width, &height);
+		glm::mat4 projection = glm::perspective(glm::radians(cam.mZoom), (float)width / (float)height, 0.1f, 1000.0f);
 		sandShader.setMat4("projection", projection);
 
 		glm::mat4 view = cam.getViewMatrix();
 		sandShader.setMat4("view", view);
-
-
+		
+		
 		/*
 			Author: Willam Bishop
 		*/
 		//Draw terrain
-		glm::mat4 planeTransform = glm::mat4(1);
+		/*glm::mat4 planeTransform = glm::mat4(1);
 		float spacing = (complexity / 2) - (complexity / 10);
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size;j++) {
@@ -251,20 +256,24 @@ int main() {
 				planeTransform = glm::translate(planeTransform, glm::vec3(-(i * spacing), 0.0, -(j * spacing) ));
 				sandShader.Shader::use();
 			}
-		}
+		}*/
 		/*
 			End Author: Willam Bishop
 		*/
 		
 		//draw plane
 		sandShader.Shader::use();
-		planeTransform = glm::mat4(1);
+		glm::mat4 planeTransform = glm::mat4(1);
+		glm::mat4 sphereTransform = glm::mat4(1);
 		planeTransform = glm::rotate(planeTransform, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
 		planeTransform = glm::rotate(planeTransform, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
 		planeTransform = glm::rotate(planeTransform, glm::radians(z), glm::vec3(0.0f, 1.0f, 1.0f));
 		planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
+		sphereTransform = glm::translate(sphereTransform, glm::vec3(5.0, 0.0, 0.0));
 		sandShader.setMat4("model", planeTransform);
 		planeMesh.draw(drawMode);
+		sandShader.setMat4("model", sphereTransform);
+		sphereMesh.draw(drawMode);
 
 		if (tangent)
 		{
@@ -407,4 +416,11 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 void scrollCallback(GLFWwindow* window, double xOffset, double yOffset)
 {
 	cam.mouseWheelInput(yOffset);
+}
+
+void framebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+	// make sure the viewport matches the new window dimensions; note that width and 
+	// height will be significantly larger than specified on retina displays.
+	glViewport(0, 0, width, height);
 }
