@@ -23,6 +23,7 @@
 #include "Texture/Texture.h"
 #include "Camera/Camera.h"
 #include "Terrain/terrain.h"
+#include "Framebuffer.h"
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -46,6 +47,7 @@ float grainSize = 5.0f;
 float rimStrength = 0.2f;
 float rimPower = 10.0f;
 float rippleStrength = 5.0f;
+float heightScale = 0.1f;
 
 glm::vec3 dayLightColor(0.898f, 0.863f, 0.757f);
 glm::vec3 dayLitColor = glm::vec3(0.925, 0.796, 0.718);
@@ -77,6 +79,33 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
 bool wireFrame = false;
 bool pointRender = false;
+
+int binarySearch(int low, int high, float target);
+
+int binarySearch(int low, int high, float target)
+{
+
+	target = round(target * 1000);
+
+	while (low <= high)
+	{
+		int mid = low + (high - low) / 2;
+
+		if (mid == target)
+		{
+			return mid;
+		}
+		else if (mid < target)
+		{
+			low = mid + 1;
+		}
+		else
+		{
+			high = mid - 1;
+		}
+	}
+	return -1;
+}
 
 //terrain config
 //int width = 36;
@@ -120,12 +149,15 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
+	//Shader depthShader("assets/shaderAssets/depth.vert", "assets/shaderAssets/depth.frag");
 	Shader sandShader("assets/shaderAssets/basicLightingVShader.vert", "assets/shaderAssets/basicLightingFShader.frag");
 	Shader normalShader("assets/shaderAssets/normalVisualization.vert", "assets/shaderAssets/normalVisualization.frag", "assets/shaderAssets/normalVisualization.geom");
 	Shader tangentShader("assets/shaderAssets/tangentVisualization.vert", "assets/shaderAssets/tangentVisualization.frag", "assets/shaderAssets/tangentVisualization.geom");
 	Shader lampShader("assets/shaderAssets/lampVShader.vert", "assets/shaderAssets/lampFShader.frag");
 
 	//-----------------------------------------------------------------------------------------------
+
+	binarySearch(0, 1000, .731);
 
 	ew::MeshData terrainMeshData;
 	ew::MeshData planeMeshData;
@@ -135,24 +167,29 @@ int main() {
 	ew::createPlaneXY(6.0f, 6.0f, 4.0f, &planeMeshData);
 	ew::createCube(6.0f, &cubeMeshData);
 	ew::createSphere(2.0f, 32, &sphereMeshData);
-	/*ew::Mesh terrainMesh[size*2];
-	for (int i = 0; i < size * 2; i++) {
-		int type = (rand() * i * size * complexity * rand() * width * height) % 5;
-		ew::createTerrain(width, height, complexity, &terrainMeshData, type);
-		terrainMesh[i] = ew::Mesh(terrainMeshData);
-	}*/
 
 	ew::Mesh planeMesh = ew::Mesh(planeMeshData);
 	ew::Mesh cubeMesh = ew::Mesh(cubeMeshData);
 	ew::Mesh sphereMesh = ew::Mesh(sphereMeshData);
 
-	Texture2D grainNormals("assets/NormalMaps/grain.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_NEAREST, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D grainNormals("assets/NormalMaps/grain.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D shallowRipplesX("assets/NormalMaps/sandShallowX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D steepRipplesX("assets/NormalMaps/sandSteepX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D shallowRipplesZ("assets/NormalMaps/sandShallowZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 	Texture2D steepRipplesZ("assets/NormalMaps/sandSteepZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
 
+	Texture2D grainHeight("assets/HeightMaps/grain.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D shallowRipplesXH("assets/HeightMaps/sandShallowX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D steepRipplesXH("assets/HeightMaps/sandSteepX.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D shallowRipplesZH("assets/HeightMaps/sandShallowZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+	Texture2D steepRipplesZH("assets/HeightMaps/sandSteepZ.jpg", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_REPEAT, GL_REPEAT, GL_RGB);
+
 	float rotationTime = 0;
+
+	/*Framebuffer depth;
+	depth.init(256, 256, false, 1);
+	depth.checkStatus();*/
+
 	//Render loop
 	while (!glfwWindowShouldClose(window)) {
 		//update time
@@ -163,11 +200,53 @@ int main() {
 		//input
 		processInput(window);
 
+		//glBindFramebuffer(GL_FRAMEBUFFER, depth.getFbo());
+
 		//Clear framebuffer
 		glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
+		glEnable(GL_DEPTH_TEST);
 
 		ew::DrawMode drawMode = pointRender ? ew::DrawMode::POINTS : ew::DrawMode::TRIANGLES;
+
+		//depthShader.use();
+
+		//depthShader.setInt("uHeightMap", 5);
+		//depthShader.setInt("uShallowXH", 6);
+		//depthShader.setInt("uSteepXH", 7);
+		//depthShader.setInt("uShallowZH", 8);
+		//depthShader.setInt("uSteepZH", 9);
+		//
+		//grainHeight.Texture2D::bind(5);
+		//shallowRipplesXH.Texture2D::bind(6);
+		//steepRipplesXH.Texture2D::bind(7);
+		//shallowRipplesZH.Texture2D::bind(8);
+		//steepRipplesZH.Texture2D::bind(9);
+
+		////camera view
+		//int width, height;
+		//glfwGetWindowSize(window, &width, &height);
+		//glm::mat4 projection = glm::perspective(glm::radians(cam.mZoom), (float)width / (float)height, 0.1f, 1000.0f);
+		//depthShader.setMat4("uProjection", projection);
+		//glm::mat4 view = cam.getViewMatrix();
+		//depthShader.setMat4("uView", view);
+
+		////draw plane and sphere
+		//glm::mat4 planeTransform = glm::mat4(1);
+		//glm::mat4 sphereTransform = glm::mat4(1);
+
+		//planeTransform = glm::rotate(planeTransform, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+		//planeTransform = glm::rotate(planeTransform, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+		//planeTransform = glm::rotate(planeTransform, glm::radians(z), glm::vec3(0.0f, 1.0f, 1.0f));
+		//planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
+
+		//sphereTransform = glm::translate(sphereTransform, glm::vec3(5.0, 0.0, 0.0));
+
+		//depthShader.setMat4("uModel", planeTransform);
+		//planeMesh.draw(drawMode);
+
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 		//use shader
 		sandShader.Shader::use();
@@ -189,7 +268,6 @@ int main() {
 		}
 
 		//update uniforms
-		sandShader.setVec3("uLightColor", glm::vec3(1.0f, 1.0f, 1.0f));
 		sandShader.setVec3("uLightDirection", lightDirection);
 		sandShader.setVec3("uViewPos", cam.getPos());
 		sandShader.setVec3("uLightColor", lightColor);
@@ -206,74 +284,58 @@ int main() {
 		sandShader.setFloat("uRimStrength", rimStrength);
 		sandShader.setFloat("uRimPower", rimPower);
 		sandShader.setFloat("uSteepnessStrength", rippleStrength);
+		sandShader.setFloat("uHeightScale", heightScale);
+
 		sandShader.setInt("uNormalMap", 0);
 		sandShader.setInt("uShallowX", 1);
 		sandShader.setInt("uSteepX", 2);
 		sandShader.setInt("uShallowZ", 3);
 		sandShader.setInt("uSteepZ", 4);
 
+		sandShader.setInt("uHeightMap", 5);
+		sandShader.setInt("uShallowXH", 6);
+		sandShader.setInt("uSteepXH", 7);
+		sandShader.setInt("uShallowZH", 8);
+		sandShader.setInt("uSteepZH", 9);
+
 		grainNormals.Texture2D::bind(0);
 		shallowRipplesX.Texture2D::bind(1);
 		steepRipplesX.Texture2D::bind(2);
 		shallowRipplesZ.Texture2D::bind(3);
 		steepRipplesZ.Texture2D::bind(4);
+		//glBindTextureUnit(5, depth.getColorTexturebuffer(0));
+
+
+		grainHeight.Texture2D::bind(5);
+		shallowRipplesXH.Texture2D::bind(6);
+		steepRipplesXH.Texture2D::bind(7);
+		shallowRipplesZH.Texture2D::bind(8);
+		steepRipplesZH.Texture2D::bind(9);
 
 		//camera view
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
 		glm::mat4 projection = glm::perspective(glm::radians(cam.mZoom), (float)width / (float)height, 0.1f, 1000.0f);
-		sandShader.setMat4("projection", projection);
-
+		sandShader.setMat4("uProjection", projection);
 		glm::mat4 view = cam.getViewMatrix();
-		sandShader.setMat4("view", view);
-		
-		
-		/*
-			Author: Willam Bishop
-		*/
-		//Draw terrain
-		/*glm::mat4 planeTransform = glm::mat4(1);
-		float spacing = (complexity / 2) - (complexity / 10);
-		for (int i = 0; i < size; i++) {
-			for (int j = 0; j < size;j++) {
-				planeTransform = glm::translate(planeTransform, glm::vec3((i * spacing), 0.0, (j * spacing)));
-				sandShader.setMat4("model", planeTransform);
-				terrainMesh[i+j].draw(drawMode);
-				if (tangent)
-				{
-					normalShader.Shader::use();
-					normalShader.setMat4("projection", projection);
-					normalShader.setMat4("view", view);
-					normalShader.setMat4("model", planeTransform);
-					terrainMesh[i + j].draw(drawMode);
+		sandShader.setMat4("uView", view);
 
-					tangentShader.Shader::use();
-					tangentShader.setMat4("projection", projection);
-					tangentShader.setMat4("view", view);
-					tangentShader.setMat4("model", planeTransform);
-					terrainMesh[i + j].draw(drawMode);
-				}
-				planeTransform = glm::translate(planeTransform, glm::vec3(-(i * spacing), 0.0, -(j * spacing) ));
-				sandShader.Shader::use();
-			}
-		}*/
-		/*
-			End Author: Willam Bishop
-		*/
-		
-		//draw plane
-		sandShader.Shader::use();
+		//draw plane and sphere
 		glm::mat4 planeTransform = glm::mat4(1);
 		glm::mat4 sphereTransform = glm::mat4(1);
+
 		planeTransform = glm::rotate(planeTransform, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
 		planeTransform = glm::rotate(planeTransform, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
 		planeTransform = glm::rotate(planeTransform, glm::radians(z), glm::vec3(0.0f, 1.0f, 1.0f));
 		planeTransform = glm::translate(planeTransform, glm::vec3(-5.0, -5.0, 0.0));
+
 		sphereTransform = glm::translate(sphereTransform, glm::vec3(5.0, 0.0, 0.0));
-		sandShader.setMat4("model", planeTransform);
+
+		sandShader.setMat4("uModel", planeTransform);
 		planeMesh.draw(drawMode);
-		sandShader.setMat4("model", sphereTransform);
-		sphereMesh.draw(drawMode);
+
+		sandShader.setMat4("uModel", sphereTransform);
+		//sphereMesh.draw(drawMode);
 
 		if (tangent)
 		{
@@ -289,7 +351,7 @@ int main() {
 			tangentShader.setMat4("model", planeTransform);
 			planeMesh.draw(drawMode);
 		}
-	
+
 
 		//light cube
 		lampShader.Shader::use();
@@ -302,7 +364,7 @@ int main() {
 		model = glm::scale(model, glm::vec3(0.2f));
 		lampShader.setMat4("model", model);
 
-		cubeMesh.draw(drawMode);
+		cubeMesh.draw(drawMode);	
 
 		//draw imgui
 		ImGui_ImplGlfw_NewFrame();
@@ -324,6 +386,7 @@ int main() {
 		ImGui::SliderFloat("X", &x, -90.0f, 90.0f);
 		ImGui::SliderFloat("Y", &y, -90.0f, 90.0f);
 		ImGui::SliderFloat("Z", &z, -90.0f, 90.0f);
+		ImGui::SliderFloat("Height Scale", &heightScale, -1.0, 1.0);
 		ImGui::Checkbox("Day", &day);
 		ImGui::Checkbox("Night", &night);
 		ImGui::Checkbox("Tangent Space", &tangent);
@@ -333,6 +396,7 @@ int main() {
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		
+		//glGetError();
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 	}
