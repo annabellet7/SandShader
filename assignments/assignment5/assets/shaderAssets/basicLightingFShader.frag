@@ -135,8 +135,8 @@ void main()
 	vec3 viewDir =  normalize(fs_in.ViewPos - fs_in.FragPos);
 	vec3 lightDir = normalize(-fs_in.LightDirection);
 
-	//vec2 newCoords = parallaxMapping(viewDir);
-	vec2 newCoords = fs_in.TexCoord;
+	vec2 newCoords = parallaxMapping(viewDir);
+	//vec2 newCoords = fs_in.TexCoord;
 	if(newCoords.x > 1.0 || newCoords.y > 1.0 || newCoords.x < 0.0 || newCoords.y < 0.0)
         discard;
 	
@@ -190,7 +190,7 @@ void main()
 
 	//vec2 otherCoords = newCoords + x;
 
-	FragColor = vec4(norm, 1.0);
+	FragColor = vec4(result, 1.0);
 	
 	
 	
